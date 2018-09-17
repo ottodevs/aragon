@@ -1,11 +1,11 @@
 import React from 'react'
 import styled from 'styled-components'
-import { spring, Motion } from 'react-motion'
-import { spring as springConf } from '@aragon/ui'
+import { Spring } from 'react-spring'
+import { springs } from '@aragon/ui'
 import { lerp } from '../../math-utils'
 import LoadingRing from '../LoadingRing'
 
-const SPRING = springConf('fast')
+const SPRING = springs.fast
 
 class MenuPanelAppsLoader extends React.Component {
   state = { hideLoader: false, loadingTransitionDone: false }
@@ -36,13 +36,14 @@ class MenuPanelAppsLoader extends React.Component {
     const { children, itemsCount, loading } = this.props
     const { hideLoader, loadingTransitionDone } = this.state
     return (
-      <Motion
+      <Spring
+        config={SPRING}
+        to={{
+          prepareProgress: Number(!loading),
+          hideProgress: Number(hideLoader),
+        }}
         onRest={this.handleRest}
         defaultStyle={{ prepareProgress: 0, hideProgress: 0 }}
-        style={{
-          prepareProgress: spring(Number(!loading), SPRING),
-          hideProgress: spring(Number(hideLoader), SPRING),
-        }}
       >
         {({ prepareProgress, hideProgress }) => (
           <Main>
@@ -67,7 +68,7 @@ class MenuPanelAppsLoader extends React.Component {
             </Apps>
           </Main>
         )}
-      </Motion>
+      </Spring>
     )
   }
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
-import { Motion, spring } from 'react-motion'
-import { spring as springConf } from '@aragon/ui'
+import { Spring } from 'react-spring'
+import { springs } from '@aragon/ui'
 import { noop } from '../utils'
 
 import * as Steps from './steps'
@@ -33,7 +33,7 @@ const SPRING_HIDE = {
   damping: 15,
   precision: 0.001,
 }
-const SPRING_SCREEN = springConf('slow')
+const SPRING_SCREEN = springs.slow
 
 const initialState = {
   template: null,
@@ -366,12 +366,10 @@ class Onboarding extends React.PureComponent {
     const step = this.currentStep()
     const steps = this.getSteps()
     return (
-      <Motion
-        style={{
-          showProgress: spring(
-            Number(visible),
-            visible ? SPRING_SHOW : SPRING_HIDE
-          ),
+      <Spring
+        config={visible ? SPRING_SHOW : SPRING_HIDE}
+        to={{
+          showProgress: Number(visible),
         }}
         onRest={this.handleTransitionRest}
       >
@@ -386,8 +384,9 @@ class Onboarding extends React.PureComponent {
           >
             <View>
               <Window>
-                <Motion
-                  style={{ screenProgress: spring(stepIndex, SPRING_SCREEN) }}
+                <Spring
+                  config={SPRING_SCREEN}
+                  to={{ screenProgress: stepIndex }}
                 >
                   {({ screenProgress }) => (
                     <React.Fragment>
@@ -414,12 +413,12 @@ class Onboarding extends React.PureComponent {
                       />
                     </React.Fragment>
                   )}
-                </Motion>
+                </Spring>
               </Window>
             </View>
           </Main>
         )}
-      </Motion>
+      </Spring>
     )
   }
   renderScreen(screen, position, positionProgress) {

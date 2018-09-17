@@ -1,18 +1,15 @@
 import React from 'react'
 import styled from 'styled-components'
 import ContainerDimensions from 'react-container-dimensions'
-import { spring, Motion } from 'react-motion'
-import { theme, spring as springConf } from '@aragon/ui'
+import { Spring } from 'react-spring'
+import { theme, springs } from '@aragon/ui'
 
 const { accent } = theme
 
 const AppLoadingProgressBar = ({ hide, percent, ...props }) => (
-  <Motion
-    defaultStyle={{ opacity: 0, percentProgress: 0 }}
-    style={{
-      opacity: spring(Number(!hide), springConf('fast')),
-      percentProgress: spring(percent, springConf('fast')),
-    }}
+  <Spring
+    config={springs.fast}
+    to={{ opacity: Number(!hide), percentProgress: percent }}
   >
     {({ opacity, percentProgress }) => (
       <ContainerDimensions>
@@ -29,7 +26,7 @@ const AppLoadingProgressBar = ({ hide, percent, ...props }) => (
         )}
       </ContainerDimensions>
     )}
-  </Motion>
+  </Spring>
 )
 
 // Mimic nprogress with our own accent colour

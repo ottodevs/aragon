@@ -1,8 +1,8 @@
 import React from 'react'
-import { spring, Motion } from 'react-motion'
+import { Spring } from 'react-spring'
 import styled from 'styled-components'
 import throttle from 'lodash.throttle'
-import { theme, spring as springConf, unselectable, Text } from '@aragon/ui'
+import { theme, springs, unselectable, Text } from '@aragon/ui'
 
 import arrow from './assets/arrow.svg'
 
@@ -41,10 +41,9 @@ class ExpandableBox extends React.Component {
     const { selfExpanded, drawerHeight } = this.state
     const expandedFinal = expanded === undefined ? selfExpanded : expanded
     return (
-      <Motion
-        style={{
-          openProgress: spring(Number(expandedFinal), springConf('fast')),
-        }}
+      <Spring
+        config={springs.fast}
+        to={{ openProgress: Number(expandedFinal) }}
       >
         {({ openProgress }) => (
           <Main expanded={expandedFinal}>
@@ -85,7 +84,7 @@ class ExpandableBox extends React.Component {
             </DrawerWrapper>
           </Main>
         )}
-      </Motion>
+      </Spring>
     )
   }
 }

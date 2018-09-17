@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { spring, Motion } from 'react-motion'
+import { Spring } from 'react-spring'
 import { theme, AppBar, Text } from '@aragon/ui'
 import HomeCard from './HomeCard'
 import { lerp } from '../../math-utils'
@@ -91,9 +91,7 @@ class Home extends React.Component {
         </AppBarWrapper>
         <ScrollWrapper>
           <AppWrapper>
-            <Motion
-              style={{ showAppsProgress: spring(Number(showApps), SPRING) }}
-            >
+            <Spring config={SPRING} to={{ showAppsProgress: Number(showApps) }}>
               {({ showAppsProgress }) => (
                 <Content>
                   <Title>
@@ -139,7 +137,7 @@ class Home extends React.Component {
                   </div>
                 </Content>
               )}
-            </Motion>
+            </Spring>
           </AppWrapper>
         </ScrollWrapper>
         <AppFooter>

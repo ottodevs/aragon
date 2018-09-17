@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
-import { Motion, spring } from 'react-motion'
-import { spring as springConf, Button } from '@aragon/ui'
+import { Spring } from 'react-spring'
+import { springs, Button } from '@aragon/ui'
 import { lerp } from '../math-utils'
 
 class PrevNext extends React.Component {
@@ -16,11 +16,7 @@ class PrevNext extends React.Component {
       isSigningNext,
     } = this.props
     return (
-      <Motion
-        style={{
-          showProgress: spring(Number(visible), springConf('fast')),
-        }}
-      >
+      <Spring config={springs.fast} to={{ showProgress: Number(visible) }}>
         {({ showProgress }) => (
           <Main
             style={{
@@ -41,7 +37,7 @@ class PrevNext extends React.Component {
             />
           </Main>
         )}
-      </Motion>
+      </Spring>
     )
   }
 }
