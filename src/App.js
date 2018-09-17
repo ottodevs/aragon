@@ -159,7 +159,7 @@ class App extends React.Component {
 
     this.setState({ appsLoading: true })
 
-    log('Wrapper init', dao)
+    // log('Wrapper init', dao)
     initWrapper(dao, contractAddresses.ensRegistry, {
       provider: web3Providers.default,
       walletProvider: web3Providers.wallet,
@@ -168,37 +168,37 @@ class App extends React.Component {
         this.setState({ appsLoading: false })
       },
       onDaoAddress: daoAddress => {
-        log('daoAddress', daoAddress)
+        // log('daoAddress', daoAddress)
         this.setState({ daoAddress })
       },
       onWeb3: web3 => {
-        log('web3', web3)
+        // log('web3', web3)
         this.setState({ web3 })
       },
       onApps: apps => {
-        log('apps updated', apps)
+        // log('apps updated', apps)
         this.setState({
           apps,
           appsLoading: false,
         })
       },
       onPermissions: permissions => {
-        log('permissions updated', permissions)
+        // log('permissions updated', permissions)
         this.setState({
           permissions,
           permissionsLoading: false,
         })
       },
       onForwarders: forwarders => {
-        log('forwarders', forwarders)
+        // log('forwarders', forwarders)
       },
       onTransaction: transactionBag => {
-        log('transaction bag', transactionBag)
+        // log('transaction bag', transactionBag)
         this.setState({ transactionBag })
       },
     })
       .then(wrapper => {
-        log('wrapper', wrapper)
+        // log('wrapper', wrapper)
         this.setState({ wrapper })
       })
       .catch(err => {
