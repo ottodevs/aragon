@@ -140,6 +140,9 @@ class Wrapper extends React.PureComponent {
     ) {
       this.setState({ menuPanelOpened: value === true })
     }
+    if (name === 'paramsRequest') {
+      this.handleParamsRequest(value)
+    }
   }
   handleMenuPanelOpen = () => {
     this.setState({ menuPanelOpened: true })
