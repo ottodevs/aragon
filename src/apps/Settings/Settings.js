@@ -49,8 +49,10 @@ class Settings extends React.Component {
   state = {
     currencies: AVAILABLE_CURRENCIES,
     ethNode: defaultEthNode,
+    homeAppName: 'Home',
     ipfsGateway: ipfsDefaultConf.gateway,
     selectedCurrency: filterCurrency(getSelectedCurrency()),
+    selectedHomeApp: 0,
     selectedNodeError: null,
   }
   handleSelectedCurrencyChange = (index, currencies) => {
@@ -89,10 +91,13 @@ class Settings extends React.Component {
     window.location.reload()
   }
   handleHomeAppChange = (index, apps) => {
-    console.log('changed app:', index, apps)
+    // setSelectedHomeApp(apps[index])
+    this.setState({ selectedHomeApp: apps[index] })
   }
   handleHomeNameChange = event => {
-    console.log('changed app name:', event.target.value)
+    this.setState({
+      homeAppName: event.target.value && event.target.value.trim(),
+    })
   }
 
   handleMenuPanelOpen = () => {
@@ -116,14 +121,17 @@ class Settings extends React.Component {
       currencies,
       ethNode,
       ipfsGateway,
-      homeAppName = 'Home',
+      homeAppName,
       selectedCurrency,
-      selectedHomeApp = 'Home',
+      selectedHomeApp,
       selectedNodeError,
     } = this.state
 
     const reducedAppNames = apps.reduce(
-      (filtered, app) => !app.hasWebApp && filtered.push(app.name) && filtered,
+      (filtered, app) => {
+        app.hasWebApp && filtered.push(app.name)
+        return filtered
+      },
       ['Home']
     )
 
@@ -167,8 +175,7 @@ class Settings extends React.Component {
             <WideFlex>
               <Field label="Select app">
                 <DropDown
-                  // active={apps.indexOf(selectedHomeApp)}
-                  active={0}
+                  active={selectedHomeApp}
                   items={reducedAppNames}
                   onChange={this.handleHomeAppChange}
                   wide
