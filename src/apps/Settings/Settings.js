@@ -52,7 +52,7 @@ class Settings extends React.Component {
     homeAppName: 'Home',
     ipfsGateway: ipfsDefaultConf.gateway,
     selectedCurrency: filterCurrency(getSelectedCurrency()),
-    selectedHomeApp: 0,
+    selectedHomeApp: 'Home',
     selectedNodeError: null,
   }
   handleSelectedCurrencyChange = (index, currencies) => {
@@ -98,6 +98,22 @@ class Settings extends React.Component {
     this.setState({
       homeAppName: event.target.value && event.target.value.trim(),
     })
+  }
+  handleHomeSettingsSave = async () => {
+    const { homeAppName, selectedHomeApp } = this.state
+    console.log(
+      `App should change to ${selectedHomeApp} with the alias "${homeAppName}"`
+    )
+
+    // try {
+    // await changeHomeApp(selectedHomeApp, homeAppName)
+    // } catch (err) {
+    // this.setState({ selectedHomeError: err })
+    // return
+    // }
+
+    // For now, we have to reload the page to propagate the changes
+    // window.location.reload()
   }
 
   handleMenuPanelOpen = () => {
@@ -175,7 +191,7 @@ class Settings extends React.Component {
             <WideFlex>
               <Field label="Select app">
                 <DropDown
-                  active={selectedHomeApp}
+                  active={reducedAppNames.indexOf(selectedHomeApp)}
                   items={reducedAppNames}
                   onChange={this.handleHomeAppChange}
                   wide
@@ -189,6 +205,9 @@ class Settings extends React.Component {
                 />
               </Field>
             </WideFlex>
+            <Button mode="strong" onClick={this.handleHomeSettingsSave}>
+              Submit Changes
+            </Button>
           </Option>
           <Option
             name="Node settings (advanced)"
