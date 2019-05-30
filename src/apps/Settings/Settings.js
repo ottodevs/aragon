@@ -88,6 +88,12 @@ class Settings extends React.Component {
     window.localStorage.clear()
     window.location.reload()
   }
+  handleHomeAppChange = (index, apps) => {
+    console.log('changed app:', index, apps)
+  }
+  handleHomeNameChange = event => {
+    console.log('changed app name:', event.target.value)
+  }
 
   handleMenuPanelOpen = () => {
     this.props.onMessage({
@@ -110,9 +116,17 @@ class Settings extends React.Component {
       currencies,
       ethNode,
       ipfsGateway,
+      homeAppName = 'Home',
       selectedCurrency,
+      selectedHomeApp = 'Home',
       selectedNodeError,
     } = this.state
+
+    const reducedAppNames = apps.reduce(
+      (filtered, app) => !app.hasWebApp && filtered.push(app.name) && filtered,
+      ['Home']
+    )
+
     return (
       <AppLayout
         title="Settings"
@@ -146,6 +160,29 @@ class Settings extends React.Component {
               </Field>
             </Option>
           )}
+          <Option
+            name="Home Page"
+            text={`The default home page is a list of shortcuts to other apps. You can set another home page, which can be any of your existing apps. You might want to install the Home app first and select that!`}
+          >
+            <WideFlex>
+              <Field label="Select app">
+                <DropDown
+                  // active={apps.indexOf(selectedHomeApp)}
+                  active={0}
+                  items={reducedAppNames}
+                  onChange={this.handleHomeAppChange}
+                  wide
+                />
+              </Field>
+              <Field label="Enter tab name">
+                <TextInput
+                  onChange={this.handleHomeNameChange}
+                  value={homeAppName}
+                  wide
+                />
+              </Field>
+            </WideFlex>
+          </Option>
           <Option
             name="Node settings (advanced)"
             text={`
@@ -216,6 +253,16 @@ class Settings extends React.Component {
 
 const Content = styled.div`
   max-width: 600px;
+`
+
+const WideFlex = styled.div`
+  display: flex;
+  > * {
+    flex: 1;
+  }
+  > :last-child {
+    margin-left: 20px;
+  }
 `
 
 export default Settings
