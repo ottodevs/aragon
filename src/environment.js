@@ -38,6 +38,11 @@ export const sortAppsPair = (app1, app2) => {
     return 1
   }
 
+  // Home app first
+  if (app1.isHomeApp || app2.isHomeApp) {
+    return app1.isHomeApp ? -1 : 1
+  }
+
   // Internal apps first
   if (app1.isAragonOsInternalApp !== app2.isAragonOsInternalApp) {
     return app1.isAragonOsInternalApp ? -1 : 1
