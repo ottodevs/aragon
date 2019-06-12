@@ -151,13 +151,20 @@ class MenuPanel extends React.PureComponent {
     const { scrollVisible, systemAppsOpened, systemAppsToggled } = this.state
 
     const appGroups = this.getRenderableAppGroups(appInstanceGroups)
-    const menuApps = [APP_HOME, appGroups]
+
+    const hasHomeApp = appGroups.some(function (app) { 
+      return app.isHomeApp;
+    });
+
+    const menuApps = !hasHomeApp ? [APP_HOME, appGroups] : appGroups
+
     const systemApps = [APP_PERMISSIONS, APP_APPS_CENTER, APP_SETTINGS]
 
     return (
       <Main>
         <In>
           <Header>
+            {hasHomeApp}
             <HeaderSlot css="width: 170px">
               <OrganizationSwitcher
                 loading={daoStatus === DAO_STATUS_LOADING}
