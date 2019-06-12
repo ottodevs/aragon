@@ -55,6 +55,19 @@ class Home extends React.Component {
     onMessage: PropTypes.func.isRequired,
     onOpenApp: PropTypes.func.isRequired,
   }
+
+  componentDidUpdate(){
+    const { apps, onOpenApp } = this.props
+      apps.map(app => {
+        if (app.isHomeApp){
+         if (app && onOpenApp) {
+            onOpenApp(app.proxyAddress)
+          }
+        }
+      }
+    )
+  }
+
   handleCardAction = actionId => {
     const { onOpenApp, apps } = this.props
     const action = actions.find(action => action.id === actionId)
