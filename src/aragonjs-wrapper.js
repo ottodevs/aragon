@@ -36,6 +36,8 @@ const applyAppOverrides = apps =>
 // Sort apps, apply URL overrides, and attach data useful to the frontend
 const prepareAppsForFrontend = (apps, daoAddress, gateway) => {
   const hasWebApp = app => Boolean(app['start_url'])
+  const homeAppAddr = 'Voting'
+  const homeAppName = 'home.alias'
 
   const getAPMRegistry = ({ appName = '' }) =>
     appName.substr(appName.indexOf('.') + 1) // everything after the first '.'
@@ -65,12 +67,18 @@ const prepareAppsForFrontend = (apps, daoAddress, gateway) => {
       const startUrl = removeStartingSlash(app['start_url'] || '')
       const src = baseUrl ? resolvePathname(startUrl, baseUrl) : ''
 
+      const isHomeApp = app.name === homeAppAddr
+      if (isHomeApp) {
+        app.name = homeAppName
+      }
+
       return {
         ...app,
         src,
         baseUrl,
         apmRegistry: getAPMRegistry(app),
         hasWebApp: hasWebApp(app),
+        isHomeApp: isHomeApp,
         tags: getAppTags(app),
       }
     })
@@ -467,9 +475,7 @@ const templateParamFilters = {
 
     if (neededSignatures < 1 || neededSignatures > signers.length) {
       throw new Error(
-        `neededSignatures must be between 1 and the total number of signers (${
-          signers.length
-        })`,
+        `neededSignatures must be between 1 and the total number of signers (${signers.length})`,
         neededSignatures
       )
     }

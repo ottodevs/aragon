@@ -65,6 +65,7 @@ export const AppType = PropTypes.shape({
   codeAddress: EthereumAddressType.isRequired,
   functions: PropTypes.array.isRequired,
   hasWebApp: PropTypes.bool.isRequired,
+  isHomeApp: PropTypes.bool,
   name: PropTypes.string.isRequired,
   proxyAddress: EthereumAddressType.isRequired,
   src: PropTypes.string.isRequired,
