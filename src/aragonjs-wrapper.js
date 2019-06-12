@@ -34,10 +34,14 @@ const applyAppOverrides = apps =>
   apps.map(app => ({ ...app, ...(appOverrides[app.appId] || {}) }))
 
 // Sort apps, apply URL overrides, and attach data useful to the frontend
-const prepareAppsForFrontend = (apps, daoAddress, gateway) => {
+const prepareAppsForFrontend = (
+  apps,
+  daoAddress,
+  gateway,
+  homeAppAddr,
+  homeAppName
+) => {
   const hasWebApp = app => Boolean(app['start_url'])
-  const homeAppAddr = 'Voting'
-  const homeAppName = 'home.alias'
 
   const getAPMRegistry = ({ appName = '' }) =>
     appName.substr(appName.indexOf('.') + 1) // everything after the first '.'
@@ -236,12 +240,21 @@ const subscribe = (
     connectedApp: null,
     connectedWorkers: workerSubscriptionPool,
 
-    apps: apps.subscribe(apps => {
+    apps: apps.subscribe(async apps => {
+      const homeAppName = await new Promise(resolve =>
+        setTimeout(resolve('Home'), 1000)
+      )
+      const homeAppAddr = await new Promise(resolve =>
+        setTimeout(resolve('Voting'), 1000)
+      )
+
       onApps(
         prepareAppsForFrontend(
           apps,
           wrapper.kernelProxy.address,
-          ipfsConf.gateway
+          ipfsConf.gateway,
+          homeAppAddr,
+          homeAppName
         )
       )
     }),
