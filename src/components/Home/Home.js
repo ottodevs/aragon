@@ -56,16 +56,23 @@ class Home extends React.Component {
     onOpenApp: PropTypes.func.isRequired,
   }
 
-  componentDidUpdate(){
+  componentDidUpdate() {
+    this.redirectHome()
+  }
+
+  componentDidMount() {
+    this.redirectHome()
+  }
+
+  redirectHome() {
     const { apps, onOpenApp } = this.props
-      apps.map(app => {
-        if (app.isHomeApp){
-         if (app && onOpenApp) {
-            onOpenApp(app.proxyAddress)
-          }
+    apps.map(app => {
+      if (app.isHomeApp) {
+        if (app && onOpenApp) {
+          onOpenApp(app.proxyAddress)
         }
       }
-    )
+    })
   }
 
   handleCardAction = actionId => {

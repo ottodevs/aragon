@@ -152,9 +152,9 @@ class MenuPanel extends React.PureComponent {
 
     const appGroups = this.getRenderableAppGroups(appInstanceGroups)
 
-    const hasHomeApp = appGroups.some(function (app) { 
-      return app.isHomeApp;
-    });
+    const hasHomeApp = appGroups.some(function(app) {
+      return app.isHomeApp
+    })
 
     const menuApps = !hasHomeApp ? [APP_HOME, appGroups] : appGroups
 
@@ -164,7 +164,6 @@ class MenuPanel extends React.PureComponent {
       <Main>
         <In>
           <Header>
-            {hasHomeApp}
             <HeaderSlot css="width: 170px">
               <OrganizationSwitcher
                 loading={daoStatus === DAO_STATUS_LOADING}
