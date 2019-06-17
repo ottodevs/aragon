@@ -22,6 +22,7 @@ import { checkValidEthNode } from '../../web3-utils'
 import DaoSettings from './DaoSettings'
 import Option from './Option'
 import Note from './Note'
+import HomeSettings from './HomeSettings'
 
 // Only USD for now
 const AVAILABLE_CURRENCIES = ['USD']
@@ -55,10 +56,12 @@ class Settings extends React.Component {
     selectedHomeApp: 'Home',
     selectedNodeError: null,
   }
+
   handleSelectedCurrencyChange = (index, currencies) => {
     setSelectedCurrency(currencies[index])
     this.setState({ selectedCurrency: currencies[index] })
   }
+
   handleDefaultEthNodeChange = event => {
     this.setState({
       ethNode: event.target.value && event.target.value.trim(),
@@ -90,31 +93,6 @@ class Settings extends React.Component {
     window.localStorage.clear()
     window.location.reload()
   }
-  handleHomeAppChange = (index, apps) => {
-    // setSelectedHomeApp(apps[index])
-    this.setState({ selectedHomeApp: apps[index] })
-  }
-  handleHomeNameChange = event => {
-    this.setState({
-      homeAppName: event.target.value && event.target.value.trim(),
-    })
-  }
-  handleHomeSettingsSave = async () => {
-    const { homeAppName, selectedHomeApp } = this.state
-    console.log(
-      `App should change to ${selectedHomeApp} with the alias "${homeAppName}"`
-    )
-
-    // try {
-    // await changeHomeApp(selectedHomeApp, homeAppName)
-    // } catch (err) {
-    // this.setState({ selectedHomeError: err })
-    // return
-    // }
-
-    // For now, we have to reload the page to propagate the changes
-    // window.location.reload()
-  }
 
   handleMenuPanelOpen = () => {
     this.props.onMessage({
@@ -137,19 +115,9 @@ class Settings extends React.Component {
       currencies,
       ethNode,
       ipfsGateway,
-      homeAppName,
       selectedCurrency,
-      selectedHomeApp,
       selectedNodeError,
     } = this.state
-
-    const reducedAppNames = apps.reduce(
-      (filtered, app) => {
-        app.hasWebApp && filtered.push(app.name)
-        return filtered
-      },
-      ['Use the default']
-    )
 
     return (
       <AppLayout
@@ -184,31 +152,7 @@ class Settings extends React.Component {
               </Field>
             </Option>
           )}
-          <Option
-            name="Home Page"
-            text={`The default home page is a list of shortcuts to other apps. You can set another home page, which can be any of your existing apps. You might want to install the Home app first and select that!`}
-          >
-            <WideFlex>
-              <Field label="Select app">
-                <DropDown
-                  active={reducedAppNames.indexOf(selectedHomeApp)}
-                  items={reducedAppNames}
-                  onChange={this.handleHomeAppChange}
-                  wide
-                />
-              </Field>
-              <Field label="Enter tab name">
-                <TextInput
-                  onChange={this.handleHomeNameChange}
-                  value={homeAppName}
-                  wide
-                />
-              </Field>
-            </WideFlex>
-            <Button mode="strong" onClick={this.handleHomeSettingsSave}>
-              Submit Changes
-            </Button>
-          </Option>
+          <HomeSettings {...this.props} />
           <Option
             name="Node settings (advanced)"
             text={`
@@ -279,16 +223,6 @@ class Settings extends React.Component {
 
 const Content = styled.div`
   max-width: 600px;
-`
-
-const WideFlex = styled.div`
-  display: flex;
-  > * {
-    flex: 1;
-  }
-  > :last-child {
-    margin-left: 20px;
-  }
 `
 
 export default Settings
