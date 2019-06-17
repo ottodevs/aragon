@@ -25,6 +25,7 @@ import {
 import { WorkerSubscriptionPool } from './worker-utils'
 import { NoConnection, DAONotFound } from './errors'
 import IframeWorker from './iframe-worker'
+import AragonStorage from './storage/aragon-storage'
 
 const POLL_DELAY_ACCOUNT = 2000
 const POLL_DELAY_NETWORK = 2000
@@ -71,7 +72,7 @@ const prepareAppsForFrontend = (
       const startUrl = removeStartingSlash(app['start_url'] || '')
       const src = baseUrl ? resolvePathname(startUrl, baseUrl) : ''
 
-      const isHomeApp = app.name === homeAppAddr
+      const isHomeApp = app.proxyAddress === homeAppAddr
       if (isHomeApp) {
         app.menuName = homeAppName
       }
@@ -241,12 +242,26 @@ const subscribe = (
     connectedWorkers: workerSubscriptionPool,
 
     apps: apps.subscribe(async apps => {
-      const homeAppName = await new Promise(resolve =>
-        setTimeout(resolve('Home'), 1000)
-      )
-      const homeAppAddr = await new Promise(resolve =>
-        setTimeout(resolve('Tokens'), 1000)
-      )
+      const storageApp = apps.find(({ name }) => name === 'Storage')
+      let homeAppName = ''
+      let homeAppAddr = ''
+      if (storageApp && storageApp.proxyAddress) {
+        const account = await getMainAccount(wrapper.web3)
+
+        homeAppAddr = await AragonStorage.get(
+          wrapper.web3,
+          storageApp.proxyAddress,
+          account,
+          'HOME_APP'
+        )
+
+        homeAppName = await AragonStorage.get(
+          wrapper.web3,
+          storageApp.proxyAddress,
+          account,
+          'HOME_APP_NAME'
+        )
+      }
 
       onApps(
         prepareAppsForFrontend(
