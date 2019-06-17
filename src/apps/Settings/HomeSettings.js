@@ -12,21 +12,17 @@ class HomeSettings extends React.Component {
   static propTypes = {
     account: EthereumAddressType,
     apps: PropTypes.arrayOf(AppType).isRequired,
-    onMessage: PropTypes.func.isRequired,
     walletWeb3: PropTypes.object.isRequired,
   }
   state = {
     homeAppName: 'Home',
     selectedHomeApp: 'Home',
-    selectedNodeError: null,
     storageApp: null,
   }
 
   async getHomeSettings(props) {
     const { apps, walletWeb3, account } = props
-
     const storageApp = apps.find(({ name }) => name === 'Storage')
-
     let homeAppName, homeAppAddr
 
     if (storageApp && storageApp.proxyAddress) {
@@ -46,7 +42,6 @@ class HomeSettings extends React.Component {
       if (!homeAppName) {
         homeAppName = 'Home'
       }
-      console.log(homeAppName)
     }
     const selectedHomeApp = apps.find(
       ({ proxyAddress }) => proxyAddress === homeAppAddr
@@ -108,12 +103,6 @@ class HomeSettings extends React.Component {
         })
         .catch(console.log)
     }
-  }
-
-  handleMenuPanelOpen = () => {
-    this.props.onMessage({
-      data: { from: 'app', name: 'menuPanel', value: true },
-    })
   }
 
   render() {
