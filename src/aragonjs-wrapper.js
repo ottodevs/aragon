@@ -73,7 +73,7 @@ const prepareAppsForFrontend = (
 
       const isHomeApp = app.name === homeAppAddr
       if (isHomeApp) {
-        app.name = homeAppName
+        app.menuName = homeAppName
       }
 
       return {
@@ -245,7 +245,7 @@ const subscribe = (
         setTimeout(resolve('Home'), 1000)
       )
       const homeAppAddr = await new Promise(resolve =>
-        setTimeout(resolve('Voting'), 1000)
+        setTimeout(resolve('Tokens'), 1000)
       )
 
       onApps(

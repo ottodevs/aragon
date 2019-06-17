@@ -246,6 +246,7 @@ class Wrapper extends React.PureComponent {
           instances: [instance],
           hasWebApp: app.hasWebApp,
           isHomeApp: app.isHomeApp,
+          menuName: app.menuName,
           repoName: app.appName,
         },
       ])
