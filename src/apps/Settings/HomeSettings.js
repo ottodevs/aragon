@@ -8,6 +8,8 @@ import AragonStorage from '../../storage/aragon-storage'
 
 import Option from './Option'
 
+const defaultName = 'Use the default'
+
 class HomeSettings extends React.Component {
   static propTypes = {
     account: EthereumAddressType,
@@ -16,7 +18,7 @@ class HomeSettings extends React.Component {
   }
   state = {
     homeAppName: 'Home',
-    selectedHomeApp: 'Home',
+    selectedHomeAppName: defaultName,
     storageApp: null,
   }
 
@@ -49,7 +51,8 @@ class HomeSettings extends React.Component {
 
     this.setState({
       homeAppName: homeAppName,
-      selectedHomeApp: selectedHomeApp && selectedHomeApp.name,
+      selectedHomeAppName:
+        (selectedHomeApp && selectedHomeApp.name) || defaultName,
       storageApp: apps.find(({ name }) => name === 'Storage'),
     })
   }
@@ -62,8 +65,7 @@ class HomeSettings extends React.Component {
   }
 
   handleHomeAppChange = (index, apps) => {
-    // setSelectedHomeApp(apps[index])
-    this.setState({ selectedHomeApp: apps[index] })
+    this.setState({ selectedHomeAppName: apps[index] })
   }
 
   handleHomeNameChange = event => {
@@ -74,47 +76,47 @@ class HomeSettings extends React.Component {
 
   handleHomeSettingsSave = async () => {
     const { walletWeb3, apps, account } = this.props
-    const { storageApp, selectedHomeApp, homeAppName } = this.state
+    const { storageApp, selectedHomeAppName, homeAppName } = this.state
 
     if (storageApp && storageApp.proxyAddress) {
-      const selectedAppAddr = apps.find(({ name }) => name === selectedHomeApp)
-      AragonStorage.set(
-        walletWeb3,
-        storageApp.proxyAddress,
-        account,
-        'HOME_APP_NAME',
-        homeAppName
+      const selectedAppAddr = apps.find(
+        ({ name }) => name === selectedHomeAppName
       )
-        .then(() => {
-          window.location.reload(true)
-          return null
-        })
-        .catch(console.log)
+      try {
+        if (selectedHomeAppName !== defaultName) {
+          await AragonStorage.set(
+            walletWeb3,
+            storageApp.proxyAddress,
+            account,
+            'HOME_APP_NAME',
+            homeAppName
+          )
+        }
 
-      AragonStorage.set(
-        walletWeb3,
-        storageApp.proxyAddress,
-        account,
-        'HOME_APP',
-        (selectedAppAddr && selectedAppAddr.proxyAddress) || ''
-      )
-        .then(() => {
-          return null
-        })
-        .catch(console.log)
+        await AragonStorage.set(
+          walletWeb3,
+          storageApp.proxyAddress,
+          account,
+          'HOME_APP',
+          (selectedAppAddr && selectedAppAddr.proxyAddress) || ''
+        )
+        window.location.reload(true)
+      } catch (err) {
+        console.log(err)
+      }
     }
   }
 
   render() {
     const { apps } = this.props
-    const { homeAppName, selectedHomeApp, storageApp } = this.state
+    const { homeAppName, selectedHomeAppName, storageApp } = this.state
 
     const reducedAppNames = apps.reduce(
       (filtered, app) => {
         app.hasWebApp && filtered.push(app.name)
         return filtered
       },
-      ['Use the default']
+      [defaultName]
     )
     if (!storageApp) return <div />
 
@@ -126,19 +128,23 @@ class HomeSettings extends React.Component {
         <WideFlex>
           <Field label="Select app">
             <DropDown
-              active={reducedAppNames.indexOf(selectedHomeApp)}
+              active={reducedAppNames.indexOf(selectedHomeAppName)}
               items={reducedAppNames}
               onChange={this.handleHomeAppChange}
               wide
             />
           </Field>
-          <Field label="Enter tab name">
-            <TextInput
-              onChange={this.handleHomeNameChange}
-              value={homeAppName}
-              wide
-            />
-          </Field>
+          {selectedHomeAppName !== defaultName ? (
+            <Field label="Enter tab name">
+              <TextInput
+                onChange={this.handleHomeNameChange}
+                value={homeAppName}
+                wide
+              />
+            </Field>
+          ) : (
+            <Field />
+          )}
         </WideFlex>
         <Button mode="strong" onClick={this.handleHomeSettingsSave}>
           Submit Changes
