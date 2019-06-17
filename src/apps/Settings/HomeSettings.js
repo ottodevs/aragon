@@ -27,8 +27,8 @@ class HomeSettings extends React.Component {
 
     const storageApp = apps.find(({ name }) => name === 'Storage')
 
-    let homeAppName = ''
-    let homeAppAddr = ''
+    let homeAppName, homeAppAddr
+
     if (storageApp && storageApp.proxyAddress) {
       homeAppAddr = await AragonStorage.get(
         walletWeb3,
@@ -43,6 +43,10 @@ class HomeSettings extends React.Component {
         account,
         'HOME_APP_NAME'
       )
+      if (!homeAppName) {
+        homeAppName = 'Home'
+      }
+      console.log(homeAppName)
     }
     const selectedHomeApp = apps.find(
       ({ proxyAddress }) => proxyAddress === homeAppAddr
