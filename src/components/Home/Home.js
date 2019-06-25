@@ -56,6 +56,25 @@ class Home extends React.Component {
     onOpenApp: PropTypes.func.isRequired,
   }
 
+  componentDidUpdate() {
+    this.redirectHome()
+  }
+
+  componentDidMount() {
+    this.redirectHome()
+  }
+
+  redirectHome() {
+    const { apps, onOpenApp } = this.props
+    apps.map(app => {
+      if (app.isHomeApp) {
+        if (app && onOpenApp) {
+          onOpenApp(app.proxyAddress)
+        }
+      }
+    })
+  }
+
   state = {
     showApps: false,
   }
