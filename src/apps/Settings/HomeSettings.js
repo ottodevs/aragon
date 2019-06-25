@@ -102,7 +102,7 @@ class HomeSettings extends React.Component {
           'HOME_APP',
           (selectedAppAddr && selectedAppAddr.proxyAddress) || ''
         )
-        window.location.reload(true)
+        // window.location.reload(true)
       } catch (err) {
         console.log(err)
       }

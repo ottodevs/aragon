@@ -18,4 +18,6 @@ export default {
     getContract(web3, storageAddr)
       .methods.getRegisteredData(soliditySha3(paramName))
       .call({ from: from }),
+  subscribe: (web3, storageAddr, paramName, callback) =>
+    getContract(web3, storageAddr).events.Registered(paramName, callback),
 }

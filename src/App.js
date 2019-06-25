@@ -47,6 +47,7 @@ const INITIAL_DAO_STATE = {
   permissions: {},
   permissionsLoading: true,
   repos: [],
+  homeSettings: { address: '', name: '' },
 }
 
 class App extends React.Component {
@@ -289,6 +290,15 @@ class App extends React.Component {
           },
         })
       },
+      onHomeApp: homeSettings => {
+        log('home updated', homeSettings)
+        this.setState(prevState => {
+          const newHomeSettings = { ...prevState.homeSettings, ...homeSettings }
+          return {
+            homeSettings: newHomeSettings,
+          }
+        })
+      },
     })
       .then(wrapper => {
         log('wrapper', wrapper)
@@ -376,8 +386,9 @@ class App extends React.Component {
       walletWeb3,
       web3,
       wrapper,
+      homeSettings,
     } = this.state
-
+    console.log(homeSettings)
     const { mode, dao } = locator
     const { address: intentAddress = null, label: intentLabel = '' } =
       identityIntent || {}
@@ -406,6 +417,8 @@ class App extends React.Component {
 
     return (
       <IdentityProvider onResolve={this.handleIdentityResolve}>
+        {this.state.homeSettings.address}
+        {this.state.homeSettings.name}
         <ModalProvider>
           <LocalIdentityModalProvider
             onShowLocalIdentityModal={this.handleOpenLocalIdentityModal}

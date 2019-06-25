@@ -21,9 +21,11 @@ import {
   getUnknownBalance,
   getMainAccount,
   isValidEnsName,
+  soliditySha3,
 } from './web3-utils'
 import { getBlobUrl, WorkerSubscriptionPool } from './worker-utils'
 import { NoConnection, DAONotFound } from './errors'
+
 import AragonStorage from './storage/storage-wrapper'
 
 const POLL_DELAY_ACCOUNT = 2000
@@ -34,13 +36,7 @@ const applyAppOverrides = apps =>
   apps.map(app => ({ ...app, ...(appOverrides[app.appId] || {}) }))
 
 // Sort apps, apply URL overrides, and attach data useful to the frontend
-const prepareAppsForFrontend = (
-  apps,
-  daoAddress,
-  gateway,
-  homeAppAddr,
-  homeAppName
-) => {
+const prepareAppsForFrontend = (apps, daoAddress, gateway) => {
   const hasWebApp = app => Boolean(app['start_url'])
 
   const getAPMRegistry = ({ appName = '' }) =>
@@ -71,18 +67,12 @@ const prepareAppsForFrontend = (
       const startUrl = removeStartingSlash(app['start_url'] || '')
       const src = baseUrl ? resolvePathname(startUrl, baseUrl) : ''
 
-      const isHomeApp = app.proxyAddress === homeAppAddr
-      if (isHomeApp) {
-        app.menuName = homeAppName
-      }
-
       return {
         ...app,
         src,
         baseUrl,
         apmRegistry: getAPMRegistry(app),
         hasWebApp: hasWebApp(app),
-        isHomeApp: isHomeApp,
         tags: getAppTags(app),
       }
     })
@@ -213,6 +203,7 @@ const subscribe = (
     onIdentityIntent,
     onSignatures,
     onTransaction,
+    onHomeApp,
   },
   { ipfsConf }
 ) => {
@@ -225,9 +216,11 @@ const subscribe = (
     identityIntents,
     signatures,
     transactions,
+    web3,
   } = wrapper
 
   const workerSubscriptionPool = new WorkerSubscriptionPool()
+  let homeSettingsSubscriber = null
 
   const subscriptions = {
     permissions: permissions.subscribe(onPermissions),
@@ -239,36 +232,50 @@ const subscribe = (
     signatures: signatures.subscribe(onSignatures),
     connectedApp: null,
     connectedWorkers: workerSubscriptionPool,
-
-    apps: apps.subscribe(async apps => {
+    apps: apps.subscribe(apps => {
+      // If Aragon storage is found, subscribe to the event
       const storageApp = apps.find(({ name }) => name === 'Storage')
-      let homeAppName = ''
-      let homeAppAddr = ''
-      if (storageApp && storageApp.proxyAddress) {
-        const account = await getMainAccount(wrapper.web3)
-
-        homeAppAddr = await AragonStorage.get(
-          wrapper.web3,
+      if (
+        storageApp &&
+        storageApp.proxyAddress &&
+        homeSettingsSubscriber == null
+      ) {
+        homeSettingsSubscriber = AragonStorage.subscribe(
+          web3,
           storageApp.proxyAddress,
-          account,
-          'HOME_APP'
-        )
+          { fromBlock: 0 },
+          async (error, event) => {
+            if (error) {
+              console.log(error)
+            }
+            const account = await getMainAccount(wrapper.web3)
 
-        homeAppName = await AragonStorage.get(
-          wrapper.web3,
-          storageApp.proxyAddress,
-          account,
-          'HOME_APP_NAME'
+            if (event.returnValues.key === soliditySha3('HOME_APP')) {
+              const address = await AragonStorage.get(
+                wrapper.web3,
+                storageApp.proxyAddress,
+                account,
+                'HOME_APP'
+              )
+              onHomeApp({ address })
+            }
+            if (event.returnValues.key === soliditySha3('HOME_APP_NAME')) {
+              const name = await AragonStorage.get(
+                wrapper.web3,
+                storageApp.proxyAddress,
+                account,
+                'HOME_APP_NAME'
+              )
+              onHomeApp({ name })
+            }
+          }
         )
       }
-
       onApps(
         prepareAppsForFrontend(
           apps,
           wrapper.kernelProxy.address,
-          ipfsConf.gateway,
-          homeAppAddr,
-          homeAppName
+          ipfsConf.gateway
         )
       )
     }),
@@ -377,6 +384,7 @@ const initWrapper = async (
     onSignatures = noop,
     onDaoAddress = noop,
     onWeb3 = noop,
+    onHomeApp = noop,
   } = {}
 ) => {
   const isDomain = isValidEnsName(dao)
@@ -439,6 +447,7 @@ const initWrapper = async (
       onIdentityIntent,
       onSignatures,
       onTransaction,
+      onHomeApp,
     },
     { ipfsConf }
   )
