@@ -148,7 +148,7 @@ class Settings extends React.Component {
         app.hasWebApp && filtered.push(app.name)
         return filtered
       },
-      ['Home']
+      ['Use the default']
     )
 
     return (
