@@ -24,6 +24,7 @@ import {
 } from './web3-utils'
 import { getBlobUrl, WorkerSubscriptionPool } from './worker-utils'
 import { NoConnection, DAONotFound } from './errors'
+import AragonStorage from './storage/storage-wrapper'
 
 const POLL_DELAY_ACCOUNT = 2000
 const POLL_DELAY_NETWORK = 2000
@@ -33,7 +34,13 @@ const applyAppOverrides = apps =>
   apps.map(app => ({ ...app, ...(appOverrides[app.appId] || {}) }))
 
 // Sort apps, apply URL overrides, and attach data useful to the frontend
-const prepareAppsForFrontend = (apps, daoAddress, gateway) => {
+const prepareAppsForFrontend = (
+  apps,
+  daoAddress,
+  gateway,
+  homeAppAddr,
+  homeAppName
+) => {
   const hasWebApp = app => Boolean(app['start_url'])
 
   const getAPMRegistry = ({ appName = '' }) =>
@@ -64,12 +71,18 @@ const prepareAppsForFrontend = (apps, daoAddress, gateway) => {
       const startUrl = removeStartingSlash(app['start_url'] || '')
       const src = baseUrl ? resolvePathname(startUrl, baseUrl) : ''
 
+      const isHomeApp = app.proxyAddress === homeAppAddr
+      if (isHomeApp) {
+        app.menuName = homeAppName
+      }
+
       return {
         ...app,
         src,
         baseUrl,
         apmRegistry: getAPMRegistry(app),
         hasWebApp: hasWebApp(app),
+        isHomeApp: isHomeApp,
         tags: getAppTags(app),
       }
     })
@@ -227,12 +240,35 @@ const subscribe = (
     connectedApp: null,
     connectedWorkers: workerSubscriptionPool,
 
-    apps: apps.subscribe(apps => {
+    apps: apps.subscribe(async apps => {
+      const storageApp = apps.find(({ name }) => name === 'Storage')
+      let homeAppName = ''
+      let homeAppAddr = ''
+      if (storageApp && storageApp.proxyAddress) {
+        const account = await getMainAccount(wrapper.web3)
+
+        homeAppAddr = await AragonStorage.get(
+          wrapper.web3,
+          storageApp.proxyAddress,
+          account,
+          'HOME_APP'
+        )
+
+        homeAppName = await AragonStorage.get(
+          wrapper.web3,
+          storageApp.proxyAddress,
+          account,
+          'HOME_APP_NAME'
+        )
+      }
+
       onApps(
         prepareAppsForFrontend(
           apps,
           wrapper.kernelProxy.address,
-          ipfsConf.gateway
+          ipfsConf.gateway,
+          homeAppAddr,
+          homeAppName
         )
       )
     }),
@@ -485,9 +521,7 @@ const templateParamFilters = {
 
     if (neededSignatures < 1 || neededSignatures > signers.length) {
       throw new Error(
-        `neededSignatures must be between 1 and the total number of signers (${
-          signers.length
-        })`,
+        `neededSignatures must be between 1 and the total number of signers (${signers.length})`,
         neededSignatures
       )
     }
