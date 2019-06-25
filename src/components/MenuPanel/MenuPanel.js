@@ -141,7 +141,13 @@ class MenuPanel extends React.PureComponent {
     const { animate, scrollVisible, systemAppsOpened } = this.state
 
     const appGroups = this.getRenderableAppGroups(appInstanceGroups)
-    const menuApps = [APP_HOME, appGroups]
+
+    const hasHomeApp = appGroups.some(app => {
+      return app.isHomeApp
+    })
+
+    const menuApps = !hasHomeApp ? [APP_HOME, appGroups] : appGroups
+
     const systemApps = [APP_PERMISSIONS, APP_APPS_CENTER, APP_SETTINGS]
 
     return (
