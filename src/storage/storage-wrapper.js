@@ -1,10 +1,6 @@
-import tokens from '@aragon/templates-tokens'
 import { soliditySha3 } from '../web3-utils'
 import storageAbi from './storage-abi.json'
 
-export function testTokensEnabled(network) {
-  return !!tokens[network]
-}
 const getContract = (web3, storageAddr) => {
   return new web3.eth.Contract(storageAbi, storageAddr)
 }
