@@ -175,7 +175,7 @@ class Settings extends React.Component {
               </Field>
             </Option>
           )}
-          <HomeSettings {...this.props} />
+          <HomeSettings walletWeb3={walletWeb3} apps={apps} account={account} />
           <Option
             name="Node settings (advanced)"
             text={`
