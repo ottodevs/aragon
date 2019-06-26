@@ -9,9 +9,9 @@ export default {
   set: (web3, storageAddr, from, paramName, value) =>
     getContract(web3, storageAddr)
       .methods.registerData(soliditySha3(paramName), value)
-      .send({ from: from }),
+      .send({ from }),
   get: (web3, storageAddr, from, paramName) =>
     getContract(web3, storageAddr)
       .methods.getRegisteredData(soliditySha3(paramName))
-      .call({ from: from }),
+      .call({ from }),
 }
