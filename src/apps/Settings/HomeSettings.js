@@ -8,7 +8,7 @@ import AragonStorage from '../../storage/storage-wrapper'
 
 import Option from './Option'
 
-const defaultName = 'Use the default'
+const defaultOption = 'Use the default'
 
 class HomeSettings extends React.Component {
   static propTypes = {
@@ -18,7 +18,7 @@ class HomeSettings extends React.Component {
   }
   state = {
     homeAppName: 'Home',
-    selectedHomeAppName: defaultName,
+    selectedHomeAppName: defaultOption,
     storageApp: null,
   }
 
@@ -53,7 +53,7 @@ class HomeSettings extends React.Component {
     this.setState({
       homeAppName: homeAppName,
       selectedHomeAppName:
-        (selectedHomeApp && selectedHomeApp.name) || defaultName,
+        (selectedHomeApp && selectedHomeApp.name) || defaultOption,
       storageApp: apps.find(({ name }) => name === 'Storage'),
     })
   }
@@ -85,7 +85,7 @@ class HomeSettings extends React.Component {
       )
 
       try {
-        if (selectedHomeAppName !== defaultName) {
+        if (selectedHomeAppName !== defaultOption) {
           await AragonStorage.set(
             walletWeb3,
             storageApp.proxyAddress,
@@ -118,7 +118,7 @@ class HomeSettings extends React.Component {
         app.hasWebApp && filtered.push(app.name)
         return filtered
       },
-      [defaultName]
+      [defaultOption]
     )
     if (!storageApp) return <div />
 
@@ -136,7 +136,7 @@ class HomeSettings extends React.Component {
               wide
             />
           </Field>
-          {selectedHomeAppName !== defaultName ? (
+          {selectedHomeAppName !== defaultOption ? (
             <Field label="Enter tab name">
               <TextInput
                 onChange={this.handleHomeNameChange}
