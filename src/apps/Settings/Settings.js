@@ -50,7 +50,7 @@ class Settings extends React.Component {
   state = {
     currencies: AVAILABLE_CURRENCIES,
     ethNode: defaultEthNode,
-    homeAppName: 'Home',
+    homeAppAlias: 'Home',
     ipfsGateway: ipfsDefaultConf.gateway,
     selectedCurrency: filterCurrency(getSelectedCurrency()),
     selectedHomeApp: 'Home',
@@ -90,31 +90,6 @@ class Settings extends React.Component {
     await this.props.wrapper.cache.clear()
     window.localStorage.clear()
     window.location.reload()
-  }
-  handleHomeAppChange = (index, apps) => {
-    // setSelectedHomeApp(apps[index])
-    this.setState({ selectedHomeApp: apps[index] })
-  }
-  handleHomeNameChange = event => {
-    this.setState({
-      homeAppName: event.target.value && event.target.value.trim(),
-    })
-  }
-  handleHomeSettingsSave = async () => {
-    const { homeAppName, selectedHomeApp } = this.state
-    console.log(
-      `App should change to ${selectedHomeApp} with the alias "${homeAppName}"`
-    )
-
-    // try {
-    // await changeHomeApp(selectedHomeApp, homeAppName)
-    // } catch (err) {
-    // this.setState({ selectedHomeError: err })
-    // return
-    // }
-
-    // For now, we have to reload the page to propagate the changes
-    // window.location.reload()
   }
 
   handleMenuPanelOpen = () => {

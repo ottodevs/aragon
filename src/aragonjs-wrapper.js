@@ -39,7 +39,7 @@ const prepareAppsForFrontend = (
   daoAddress,
   gateway,
   homeAppAddr,
-  homeAppName
+  homeAppAlias
 ) => {
   const hasWebApp = app => Boolean(app['start_url'])
 
@@ -73,7 +73,7 @@ const prepareAppsForFrontend = (
 
       const isHomeApp = app.proxyAddress === homeAppAddr
       if (isHomeApp) {
-        app.menuName = homeAppName
+        app.menuAlias = homeAppAlias
       }
 
       return {
@@ -242,7 +242,7 @@ const subscribe = (
 
     apps: apps.subscribe(async apps => {
       const storageApp = apps.find(({ name }) => name === 'Storage')
-      let homeAppName = ''
+      let homeAppAlias = ''
       let homeAppAddr = ''
       if (storageApp && storageApp.proxyAddress) {
         const account = await getMainAccount(wrapper.web3)
@@ -254,7 +254,7 @@ const subscribe = (
           'HOME_APP'
         )
 
-        homeAppName = await AragonStorage.get(
+        homeAppAlias = await AragonStorage.get(
           wrapper.web3,
           storageApp.proxyAddress,
           account,
@@ -268,7 +268,7 @@ const subscribe = (
           wrapper.kernelProxy.address,
           ipfsConf.gateway,
           homeAppAddr,
-          homeAppName
+          homeAppAlias
         )
       )
     }),

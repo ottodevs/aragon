@@ -265,7 +265,7 @@ class MenuPanel extends React.PureComponent {
   renderAppGroup(app, isSystem) {
     const { activeInstanceId, onOpenApp } = this.props
 
-    const { appId, name, icon, instances, menuName } = app
+    const { appId, name, icon, instances, menuAlias } = app
     const isActive =
       instances.findIndex(
         ({ instanceId }) => instanceId === activeInstanceId
@@ -274,7 +274,7 @@ class MenuPanel extends React.PureComponent {
     return (
       <div key={appId}>
         <MenuPanelAppGroup
-          name={menuName || name}
+          name={menuAlias || name}
           icon={icon}
           system={isSystem}
           instances={instances}

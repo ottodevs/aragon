@@ -199,7 +199,7 @@ class Wrapper extends React.PureComponent {
           hasWebApp: app.hasWebApp,
           repoName: app.appName,
           isHomeApp: app.isHomeApp,
-          menuName: app.menuName,
+          menuAlias: app.menuAlias,
         },
       ])
     }, [])

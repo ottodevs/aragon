@@ -17,15 +17,15 @@ class HomeSettings extends React.Component {
     walletWeb3: PropTypes.object.isRequired,
   }
   state = {
-    homeAppName: 'Home',
-    selectedHomeAppName: defaultOption,
+    homeAppAlias: 'Home',
+    selectedhomeAppAlias: defaultOption,
     storageApp: null,
   }
 
   async getHomeSettings(props) {
     const { apps, walletWeb3, account } = props
     const storageApp = apps.find(({ name }) => name === 'Storage')
-    let homeAppName, homeAppAddr
+    let homeAppAlias, homeAppAddr
 
     // TODO: Move this code to a subscriber
     if (storageApp && storageApp.proxyAddress) {
@@ -36,14 +36,14 @@ class HomeSettings extends React.Component {
         'HOME_APP'
       )
 
-      homeAppName = await AragonStorage.get(
+      homeAppAlias = await AragonStorage.get(
         walletWeb3,
         storageApp.proxyAddress,
         account,
         'HOME_APP_NAME'
       )
-      if (!homeAppName) {
-        homeAppName = 'Home'
+      if (!homeAppAlias) {
+        homeAppAlias = 'Home'
       }
     }
     const selectedHomeApp = apps.find(
@@ -51,8 +51,8 @@ class HomeSettings extends React.Component {
     )
 
     this.setState({
-      homeAppName: homeAppName,
-      selectedHomeAppName:
+      homeAppAlias: homeAppAlias,
+      selectedhomeAppAlias:
         (selectedHomeApp && selectedHomeApp.name) || defaultOption,
       storageApp: apps.find(({ name }) => name === 'Storage'),
     })
@@ -66,32 +66,32 @@ class HomeSettings extends React.Component {
   }
 
   handleHomeAppChange = (index, apps) => {
-    this.setState({ selectedHomeAppName: apps[index] })
+    this.setState({ selectedhomeAppAlias: apps[index] })
   }
 
   handleHomeNameChange = event => {
     this.setState({
-      homeAppName: event.target.value && event.target.value.trim(),
+      homeAppAlias: event.target.value && event.target.value.trim(),
     })
   }
 
   handleHomeSettingsSave = async () => {
     const { walletWeb3, apps, account } = this.props
-    const { storageApp, selectedHomeAppName, homeAppName } = this.state
+    const { storageApp, selectedhomeAppAlias, homeAppAlias } = this.state
 
     if (storageApp && storageApp.proxyAddress) {
       const selectedAppAddr = apps.find(
-        ({ name }) => name === selectedHomeAppName
+        ({ name }) => name === selectedhomeAppAlias
       )
 
       try {
-        if (selectedHomeAppName !== defaultOption) {
+        if (selectedhomeAppAlias !== defaultOption) {
           await AragonStorage.set(
             walletWeb3,
             storageApp.proxyAddress,
             account,
             'HOME_APP_NAME',
-            homeAppName
+            homeAppAlias
           )
         }
 
@@ -111,7 +111,7 @@ class HomeSettings extends React.Component {
 
   render() {
     const { apps } = this.props
-    const { homeAppName, selectedHomeAppName, storageApp } = this.state
+    const { homeAppAlias, selectedhomeAppAlias, storageApp } = this.state
 
     const reducedAppNames = apps.reduce(
       (filtered, app) => {
@@ -130,17 +130,17 @@ class HomeSettings extends React.Component {
         <WideFlex>
           <Field label="Select app">
             <DropDown
-              active={reducedAppNames.indexOf(selectedHomeAppName)}
+              active={reducedAppNames.indexOf(selectedhomeAppAlias)}
               items={reducedAppNames}
               onChange={this.handleHomeAppChange}
               wide
             />
           </Field>
-          {selectedHomeAppName !== defaultOption ? (
+          {selectedhomeAppAlias !== defaultOption ? (
             <Field label="Enter tab name">
               <TextInput
                 onChange={this.handleHomeNameChange}
-                value={homeAppName}
+                value={homeAppAlias}
                 wide
               />
             </Field>
