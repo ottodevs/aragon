@@ -23,39 +23,20 @@ class HomeSettings extends React.Component {
   }
 
   async getHomeSettings(props) {
-    const { apps, walletWeb3, account } = props
+    const { apps, homeSettings } = props
     const storageApp = apps.find(({ name }) => name === 'Storage')
-    let homeAppName, homeAppAddr
 
-    // TODO: Move this code to a subscriber
     if (storageApp && storageApp.proxyAddress) {
-      homeAppAddr = await AragonStorage.get(
-        walletWeb3,
-        storageApp.proxyAddress,
-        account,
-        'HOME_APP'
+      const selectedHomeApp = apps.find(
+        ({ proxyAddress }) => proxyAddress === homeSettings.address
       )
-
-      homeAppName = await AragonStorage.get(
-        walletWeb3,
-        storageApp.proxyAddress,
-        account,
-        'HOME_APP_NAME'
-      )
-      if (!homeAppName) {
-        homeAppName = 'Home'
-      }
+      this.setState({
+        homeAppName: homeSettings.name,
+        selectedHomeAppName:
+          (selectedHomeApp && selectedHomeApp.name) || defaultName,
+        storageApp: apps.find(({ name }) => name === 'Storage'),
+      })
     }
-    const selectedHomeApp = apps.find(
-      ({ proxyAddress }) => proxyAddress === homeAppAddr
-    )
-
-    this.setState({
-      homeAppName: homeAppName,
-      selectedHomeAppName:
-        (selectedHomeApp && selectedHomeApp.name) || defaultName,
-      storageApp: apps.find(({ name }) => name === 'Storage'),
-    })
   }
 
   componentWillReceiveProps(nextProps) {
