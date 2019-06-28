@@ -20,6 +20,7 @@ import {
   DaoStatusType,
   EthereumAddressType,
   RepoType,
+  HomeSettingsType,
 } from './prop-types'
 import { getAppPath } from './routing'
 import { APPS_STATUS_LOADING } from './symbols'
@@ -51,6 +52,7 @@ class Wrapper extends React.PureComponent {
     walletWeb3: PropTypes.object,
     web3: PropTypes.object,
     wrapper: AragonType,
+    homeSettings: HomeSettingsType,
   }
 
   static defaultProps = {
@@ -234,6 +236,7 @@ class Wrapper extends React.PureComponent {
       walletWeb3,
       web3,
       wrapper,
+      homeSettings,
     } = this.props
 
     const {
@@ -275,6 +278,7 @@ class Wrapper extends React.PureComponent {
           onRequestAppsReload={onRequestAppsReload}
           onRequestEnable={onRequestEnable}
           opened={menuPanelOpened}
+          homeSettings={homeSettings}
         >
           <AppScreen>
             {this.renderApp(locator.instanceId, locator.params)}
@@ -318,6 +322,7 @@ class Wrapper extends React.PureComponent {
       walletNetwork,
       walletWeb3,
       wrapper,
+      homeSettings,
     } = this.props
 
     const appsLoading = appsStatus === APPS_STATUS_LOADING
@@ -376,6 +381,7 @@ class Wrapper extends React.PureComponent {
           walletNetwork={walletNetwork}
           walletWeb3={walletWeb3}
           wrapper={wrapper}
+          homeSettings={homeSettings}
         />
       )
     }

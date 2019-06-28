@@ -388,7 +388,6 @@ class App extends React.Component {
       wrapper,
       homeSettings,
     } = this.state
-    console.log(homeSettings)
     const { mode, dao } = locator
     const { address: intentAddress = null, label: intentLabel = '' } =
       identityIntent || {}
@@ -417,8 +416,6 @@ class App extends React.Component {
 
     return (
       <IdentityProvider onResolve={this.handleIdentityResolve}>
-        {this.state.homeSettings.address}
-        {this.state.homeSettings.name}
         <ModalProvider>
           <LocalIdentityModalProvider
             onShowLocalIdentityModal={this.handleOpenLocalIdentityModal}
@@ -465,6 +462,7 @@ class App extends React.Component {
                       walletWeb3={walletWeb3}
                       web3={web3}
                       wrapper={wrapper}
+                      homeSettings={homeSettings}
                     />
                   </div>
                 </PermissionsProvider>
