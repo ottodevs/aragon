@@ -31,7 +31,7 @@ class HomeSettings extends React.Component {
         ({ proxyAddress }) => proxyAddress === homeSettings.address
       )
       this.setState({
-        homeAppName: homeSettings.name,
+        homeAppName: homeSettings.name || 'Home',
         selectedHomeAppName:
           (selectedHomeApp && selectedHomeApp.name) || defaultName,
         storageApp: apps.find(({ name }) => name === 'Storage'),
