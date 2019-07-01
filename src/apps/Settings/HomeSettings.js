@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import { Button, DropDown, Field, TextInput } from '@aragon/ui'
 
-import { AppType, EthereumAddressType } from '../../prop-types'
+import { AppType } from '../../prop-types'
 import AragonStorage from '../../storage/storage-wrapper'
 
 import Option from './Option'
@@ -12,50 +12,31 @@ const defaultOption = 'Use the default'
 
 class HomeSettings extends React.Component {
   static propTypes = {
-    account: EthereumAddressType,
     apps: PropTypes.arrayOf(AppType).isRequired,
-    walletWeb3: PropTypes.object.isRequired,
   }
   state = {
     homeAppAlias: 'Home',
     selectedhomeAppAlias: defaultOption,
     storageApp: null,
+    dirty: false,
   }
 
   async getHomeSettings(props) {
-    const { apps, walletWeb3, account } = props
+    const { apps, homeSettings } = props
+    const { dirty } = this.state
     const storageApp = apps.find(({ name }) => name === 'Storage')
-    let homeAppAlias, homeAppAddr
 
-    // TODO: Move this code to a subscriber
-    if (storageApp && storageApp.proxyAddress) {
-      homeAppAddr = await AragonStorage.get(
-        walletWeb3,
-        storageApp.proxyAddress,
-        account,
-        'HOME_APP'
+    if (storageApp && storageApp.proxyAddress && !dirty) {
+      const selectedHomeApp = apps.find(
+        ({ proxyAddress }) => proxyAddress === homeSettings.address
       )
-
-      homeAppAlias = await AragonStorage.get(
-        walletWeb3,
-        storageApp.proxyAddress,
-        account,
-        'HOME_APP_NAME'
-      )
-      if (!homeAppAlias) {
-        homeAppAlias = 'Home'
-      }
+      this.setState({
+        homeAppAlias: homeSettings.name || 'Home',
+        selectedhomeAppAlias:
+          (selectedHomeApp && selectedHomeApp.name) || defaultOption,
+        storageApp: apps.find(({ name }) => name === 'Storage'),
+      })
     }
-    const selectedHomeApp = apps.find(
-      ({ proxyAddress }) => proxyAddress === homeAppAddr
-    )
-
-    this.setState({
-      homeAppAlias: homeAppAlias,
-      selectedhomeAppAlias:
-        (selectedHomeApp && selectedHomeApp.name) || defaultOption,
-      storageApp: apps.find(({ name }) => name === 'Storage'),
-    })
   }
 
   componentWillReceiveProps(nextProps) {
@@ -66,17 +47,18 @@ class HomeSettings extends React.Component {
   }
 
   handleHomeAppChange = (index, apps) => {
-    this.setState({ selectedhomeAppAlias: apps[index] })
+    this.setState({ selectedhomeAppAlias: apps[index], dirty: true })
   }
 
   handleHomeNameChange = event => {
     this.setState({
       homeAppAlias: event.target.value && event.target.value.trim(),
+      dirty: true,
     })
   }
 
   handleHomeSettingsSave = async () => {
-    const { walletWeb3, apps, account } = this.props
+    const { apps, wrapper } = this.props
     const { storageApp, selectedhomeAppAlias, homeAppAlias } = this.state
 
     if (storageApp && storageApp.proxyAddress) {
@@ -85,24 +67,14 @@ class HomeSettings extends React.Component {
       )
 
       try {
-        if (selectedhomeAppAlias !== defaultOption) {
-          await AragonStorage.set(
-            walletWeb3,
-            storageApp.proxyAddress,
-            account,
-            'HOME_APP_NAME',
-            homeAppAlias
-          )
-        }
+        await AragonStorage.set(wrapper, storageApp.proxyAddress, {
+          HOME_APP_NAME: homeAppAlias,
+          HOME_APP: (selectedAppAddr && selectedAppAddr.proxyAddress) || '',
+        })
 
-        await AragonStorage.set(
-          walletWeb3,
-          storageApp.proxyAddress,
-          account,
-          'HOME_APP',
-          (selectedAppAddr && selectedAppAddr.proxyAddress) || ''
-        )
-        window.location.reload(true)
+        this.setState({
+          dirty: false,
+        })
       } catch (err) {
         console.log(err)
       }

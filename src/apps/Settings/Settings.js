@@ -17,6 +17,7 @@ import {
   AragonType,
   DaoAddressType,
   EthereumAddressType,
+  HomeSettingsType,
 } from '../../prop-types'
 import { checkValidEthNode } from '../../web3-utils'
 import DaoSettings from './DaoSettings'
@@ -46,6 +47,7 @@ class Settings extends React.Component {
     walletNetwork: PropTypes.string.isRequired,
     walletWeb3: PropTypes.object.isRequired,
     wrapper: AragonType,
+    homeSettings: HomeSettingsType,
   }
   state = {
     currencies: AVAILABLE_CURRENCIES,
@@ -108,6 +110,7 @@ class Settings extends React.Component {
       walletNetwork,
       walletWeb3,
       wrapper,
+      homeSettings,
     } = this.props
     const {
       currencies,
@@ -150,7 +153,11 @@ class Settings extends React.Component {
               </Field>
             </Option>
           )}
-          <HomeSettings walletWeb3={walletWeb3} apps={apps} account={account} />
+          <HomeSettings
+            homeSettings={homeSettings}
+            apps={apps}
+            wrapper={wrapper}
+          />
           <Option
             name="Node settings (advanced)"
             text={`
