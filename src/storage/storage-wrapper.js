@@ -10,10 +10,35 @@ const getContract = (web3, storageAddr) => {
 }
 
 export default {
-  set: (web3, storageAddr, from, paramName, value) =>
-    getContract(web3, storageAddr)
-      .methods.registerData(soliditySha3(paramName), value)
-      .send({ from: from }),
+  set: async (wrapper, storageAddr, values) => {
+    let upgradeIntents = []
+    if (!values || values.length === 0) {
+      return
+    }
+    for (const paramKey of Object.keys(values)) {
+      upgradeIntents.push([
+        storageAddr,
+        'registerData',
+        [soliditySha3(paramKey), values[paramKey]],
+      ])
+    }
+
+    const upgradePath = await wrapper.getTransactionPathForIntentBasket(
+      upgradeIntents,
+      { checkMode: 'single' }
+    )
+
+    if (upgradePath.direct) {
+      // User has direct access, so we need to send these intents one by one
+      for (const transaction of upgradePath.transactions) {
+        await wrapper.performTransactionPath([transaction])
+      }
+    } else {
+      // We can use the power of calls scripts to do a single transaction!
+      // Or, the user just can't perform this action.
+      await wrapper.performTransactionPath(upgradePath.path)
+    }
+  },
   get: (web3, storageAddr, from, paramName) =>
     getContract(web3, storageAddr)
       .methods.getRegisteredData(soliditySha3(paramName))

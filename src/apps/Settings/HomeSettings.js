@@ -5,6 +5,7 @@ import { Button, DropDown, Field, TextInput } from '@aragon/ui'
 
 import { AppType, EthereumAddressType } from '../../prop-types'
 import AragonStorage from '../../storage/storage-wrapper'
+import { soliditySha3 } from '../../web3-utils'
 
 import Option from './Option'
 
@@ -20,13 +21,15 @@ class HomeSettings extends React.Component {
     homeAppName: 'Home',
     selectedHomeAppName: defaultName,
     storageApp: null,
+    dirty: false,
   }
 
   async getHomeSettings(props) {
     const { apps, homeSettings } = props
+    const { dirty } = this.state
     const storageApp = apps.find(({ name }) => name === 'Storage')
 
-    if (storageApp && storageApp.proxyAddress) {
+    if (storageApp && storageApp.proxyAddress && !dirty) {
       const selectedHomeApp = apps.find(
         ({ proxyAddress }) => proxyAddress === homeSettings.address
       )
@@ -47,17 +50,18 @@ class HomeSettings extends React.Component {
   }
 
   handleHomeAppChange = (index, apps) => {
-    this.setState({ selectedHomeAppName: apps[index] })
+    this.setState({ selectedHomeAppName: apps[index], dirty: true })
   }
 
   handleHomeNameChange = event => {
     this.setState({
       homeAppName: event.target.value && event.target.value.trim(),
+      dirty: true,
     })
   }
 
   handleHomeSettingsSave = async () => {
-    const { walletWeb3, apps, account } = this.props
+    const { apps, wrapper } = this.props
     const { storageApp, selectedHomeAppName, homeAppName } = this.state
 
     if (storageApp && storageApp.proxyAddress) {
@@ -66,24 +70,14 @@ class HomeSettings extends React.Component {
       )
 
       try {
-        if (selectedHomeAppName !== defaultName) {
-          await AragonStorage.set(
-            walletWeb3,
-            storageApp.proxyAddress,
-            account,
-            'HOME_APP_NAME',
-            homeAppName
-          )
-        }
+        await AragonStorage.set(wrapper, storageApp.proxyAddress, {
+          HOME_APP_NAME: homeAppName,
+          HOME_APP: (selectedAppAddr && selectedAppAddr.proxyAddress) || '',
+        })
 
-        await AragonStorage.set(
-          walletWeb3,
-          storageApp.proxyAddress,
-          account,
-          'HOME_APP',
-          (selectedAppAddr && selectedAppAddr.proxyAddress) || ''
-        )
-        // window.location.reload(true)
+        this.setState({
+          dirty: false,
+        })
       } catch (err) {
         console.log(err)
       }
