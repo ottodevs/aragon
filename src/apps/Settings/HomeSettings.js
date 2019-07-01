@@ -3,9 +3,8 @@ import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import { Button, DropDown, Field, TextInput } from '@aragon/ui'
 
-import { AppType, EthereumAddressType } from '../../prop-types'
+import { AppType } from '../../prop-types'
 import AragonStorage from '../../storage/storage-wrapper'
-import { soliditySha3 } from '../../web3-utils'
 
 import Option from './Option'
 
@@ -13,9 +12,7 @@ const defaultName = 'Use the default'
 
 class HomeSettings extends React.Component {
   static propTypes = {
-    account: EthereumAddressType,
     apps: PropTypes.arrayOf(AppType).isRequired,
-    walletWeb3: PropTypes.object.isRequired,
   }
   state = {
     homeAppName: 'Home',
