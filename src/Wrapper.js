@@ -200,8 +200,6 @@ class Wrapper extends React.PureComponent {
           instances: [instance],
           hasWebApp: app.hasWebApp,
           repoName: app.appName,
-          isHomeApp: app.isHomeApp,
-          menuName: app.menuName,
         },
       ])
     }, [])
@@ -337,6 +335,7 @@ class Wrapper extends React.PureComponent {
           dao={locator.dao}
           onMessage={this.handleAppMessage}
           onOpenApp={this.openApp}
+          homeSettings={homeSettings}
         />
       )
     }
