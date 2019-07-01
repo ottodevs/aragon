@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import { Button, DropDown, Field, TextInput } from '@aragon/ui'
 
-import { AppType } from '../../prop-types'
+import { AppType, AragonType, HomeSettingsType } from '../../prop-types'
 import AragonStorage from '../../storage/storage-wrapper'
 
 import Option from './Option'
@@ -13,6 +13,8 @@ const defaultOption = 'Use the default'
 class HomeSettings extends React.Component {
   static propTypes = {
     apps: PropTypes.arrayOf(AppType).isRequired,
+    wrapper: AragonType,
+    homeSettings: HomeSettingsType,
   }
   state = {
     homeAppAlias: 'Home',
@@ -21,8 +23,8 @@ class HomeSettings extends React.Component {
     dirty: false,
   }
 
-  async getHomeSettings(props) {
-    const { apps, homeSettings } = props
+  async setHomeSettings() {
+    const { apps, homeSettings } = this.props
     const { dirty } = this.state
     const storageApp = apps.find(({ name }) => name === 'Storage')
 
@@ -39,11 +41,11 @@ class HomeSettings extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.getHomeSettings(nextProps)
+  componentWillReceiveProps() {
+    this.setHomeSettings()
   }
   componentWillMount() {
-    this.getHomeSettings(this.props)
+    this.setHomeSettings()
   }
 
   handleHomeAppChange = (index, apps) => {
