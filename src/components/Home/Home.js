@@ -5,7 +5,7 @@ import { Spring, animated } from 'react-spring'
 import { Text, theme } from '@aragon/ui'
 import HomeCard from './HomeCard'
 import { lerp } from '../../math-utils'
-import { AppType } from '../../prop-types'
+import { AppType, HomeSettingsType } from '../../prop-types'
 import springs from '../../springs'
 import AppLayout from '../../components/AppLayout/AppLayout'
 
@@ -54,6 +54,26 @@ class Home extends React.Component {
     dao: PropTypes.string.isRequired,
     onMessage: PropTypes.func.isRequired,
     onOpenApp: PropTypes.func.isRequired,
+    homeSettings: HomeSettingsType,
+  }
+
+  componentDidUpdate() {
+    this.redirectHome()
+  }
+
+  componentDidMount() {
+    this.redirectHome()
+  }
+
+  redirectHome() {
+    const { onOpenApp, homeSettings } = this.props
+
+    const hasHomeApp = homeSettings && homeSettings.address !== ''
+    if (hasHomeApp) {
+      if (onOpenApp) {
+        onOpenApp(homeSettings.address)
+      }
+    }
   }
 
   state = {
