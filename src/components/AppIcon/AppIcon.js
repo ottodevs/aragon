@@ -88,11 +88,7 @@ const AppIconContent = React.memo(({ app, size, src }) => {
     return <IconBase size={size} src={KNOWN_ICONS.get(app.appId)} />
   }
 
-  return (
-    <RemoteIcon src={appIconUrl(app, size)} size={size}>
-      <RemoteIcon src={legacyAppIconUrl(app)} size={size} />
-    </RemoteIcon>
-  )
+  return <RemoteIcon src={appIconUrl(app, size)} size={size} />
 })
 
 // Display a remote icon if found,
