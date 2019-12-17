@@ -9,6 +9,9 @@ import {
   VotingScreen,
 } from '../kit'
 
+import TokenSelection from './components/TokenSelection'
+import Tokens from './components/AdvancedTokens'
+
 import header from './header.svg'
 import icon from './icon.svg'
 
@@ -46,6 +49,134 @@ function adjustDotVotingSettings(dvSupport, dvQuorum) {
   return [adjustedDvSupport.toString(), adjustedDvQuorum.toString()]
 }
 
+const loadScreen = (ScreenComponent /*, extraProps = {} */) => props => {
+  // console.log('the props', props)
+  // console.log('the comp', ScreenComponent)
+  return <ScreenComponent screenProps={props} /* {...extraProps} */ />
+}
+
+const loadReviewScreen = props => {
+  const { domain, dotVoting, tokens, voting } = props.data
+  return (
+    <ReviewScreen
+      screenProps={props}
+      items={[
+        {
+          label: 'General info',
+          fields: [
+            ['Organization template', 'Open Enterprise'],
+            ['Name', completeDomain(domain)],
+          ],
+        },
+        {
+          label: <KnownAppBadge appName="voting.aragonpm.eth" label="Voting" />,
+          fields: VotingScreen.formatReviewFields(voting),
+        },
+        {
+          label: (
+            <KnownAppBadge
+              appName="dot-voting.aragonpm.eth"
+              label="Dot Voting"
+            />
+          ),
+          fields: DotVotingScreen.formatReviewFields(dotVoting),
+        },
+        {
+          label: (
+            <KnownAppBadge
+              appName="token-manager.aragonpm.eth"
+              label="Tokens"
+            />
+          ),
+          fields: TokensScreen.formatReviewFields(tokens),
+        },
+      ]}
+    />
+  )
+}
+
+const loadDomain = data => completeDomain(data.domain)
+
+const newScreen = [
+  'Configure template',
+  loadScreen(Tokens, { dataKey: 'secondToken' }),
+]
+
+export const singleTokens = [
+  [
+    data => completeDomain(data.domain) || 'Claim domain',
+    props => <ClaimDomainScreen screenProps={props} />,
+  ],
+  ['Configure template', props => <VotingScreen screenProps={props} />],
+  ['Configure template', props => <DotVotingScreen screenProps={props} />],
+  ['Configure template', props => <TokensScreen screenProps={props} />],
+  [
+    'Review information',
+    props => {
+      const { domain, dotVoting, tokens, voting } = props.data
+      return (
+        <ReviewScreen
+          screenProps={props}
+          items={[
+            {
+              label: 'General info',
+              fields: [
+                ['Organization template', 'Open Enterprise'],
+                ['Name', completeDomain(domain)],
+              ],
+            },
+            {
+              label: (
+                <KnownAppBadge appName="voting.aragonpm.eth" label="Voting" />
+              ),
+              fields: VotingScreen.formatReviewFields(voting),
+            },
+            {
+              label: (
+                <KnownAppBadge
+                  appName="dot-voting.aragonpm.eth"
+                  label="Dot Voting"
+                />
+              ),
+              fields: DotVotingScreen.formatReviewFields(dotVoting),
+            },
+            {
+              label: (
+                <KnownAppBadge
+                  appName="token-manager.aragonpm.eth"
+                  label="Tokens"
+                />
+              ),
+              fields: TokensScreen.formatReviewFields(tokens),
+            },
+          ]}
+        />
+      )
+    },
+  ],
+]
+
+// export const singleTokens = [
+//   // [
+//   //   data => completeDomain(data.domain) || 'Claim domain',
+//   //   loadScreen(ClaimDomainScreen),
+//   // ],
+//   [
+//     data => completeDomain(data.domain) || 'Claim domain',
+//     props => <ClaimDomainScreen screenProps={props} />,
+//   ],
+//   ['Configure template', loadScreen(TokenSelection)],
+//   // ['Configure template', loadScreen(Tokens)],
+//   ['Configure template', loadScreen(VotingScreen)],
+//   ['Configure template', loadScreen(DotVotingScreen)],
+//   // ['Review information', loadReviewScreen],
+// ]
+
+export const multiTokens = Array.prototype.splice.apply(
+  singleTokens,
+  [3, 0].concat(newScreen)
+)
+
 export default {
   id: 'open-enterprise-template.aragonpm.eth',
   name: 'Open Enterprise',
@@ -69,59 +200,8 @@ export default {
     { appName: 'projects.aragonpm.eth', label: 'Projects' },
     { appName: 'rewards.aragonpm.eth', label: 'Rewards' },
   ],
-  screens: [
-    [
-      data => completeDomain(data.domain) || 'Claim domain',
-      props => <ClaimDomainScreen screenProps={props} />,
-    ],
-    ['Configure template', props => <VotingScreen screenProps={props} />],
-    ['Configure template', props => <DotVotingScreen screenProps={props} />],
-    ['Configure template', props => <TokensScreen screenProps={props} />],
-    [
-      'Review information',
-      props => {
-        const { domain, dotVoting, tokens, voting } = props.data
-        return (
-          <ReviewScreen
-            screenProps={props}
-            items={[
-              {
-                label: 'General info',
-                fields: [
-                  ['Organization template', 'Open Enterprise'],
-                  ['Name', completeDomain(domain)],
-                ],
-              },
-              {
-                label: (
-                  <KnownAppBadge appName="voting.aragonpm.eth" label="Voting" />
-                ),
-                fields: VotingScreen.formatReviewFields(voting),
-              },
-              {
-                label: (
-                  <KnownAppBadge
-                    appName="dot-voting.aragonpm.eth"
-                    label="Dot Voting"
-                  />
-                ),
-                fields: DotVotingScreen.formatReviewFields(dotVoting),
-              },
-              {
-                label: (
-                  <KnownAppBadge
-                    appName="token-manager.aragonpm.eth"
-                    label="Tokens"
-                  />
-                ),
-                fields: TokensScreen.formatReviewFields(tokens),
-              },
-            ]}
-          />
-        )
-      },
-    ],
-  ],
+  optionalApps: [{ appName: 'agent.aragonpm.eth', label: 'Agent' }],
+  screens: singleTokens,
   prepareTransactions(createTx, data) {
     const allocationsPeriod = 0 // default
     const financePeriod = 0 // default
