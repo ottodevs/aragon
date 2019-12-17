@@ -1,13 +1,15 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import BN from 'bn.js'
 import {
   ClaimDomainScreen,
   DotVotingScreen,
   KnownAppBadge,
   ReviewScreen,
-  TokensScreen,
   VotingScreen,
 } from '../kit'
+
+import TokenSelection from './components/TokenSelection'
+import Tokens from './components/AdvancedTokens'
 
 import header from './header.svg'
 import icon from './icon.svg'
@@ -46,6 +48,106 @@ function adjustDotVotingSettings(dvSupport, dvQuorum) {
   return [adjustedDvSupport.toString(), adjustedDvQuorum.toString()]
 }
 
+const showDomainOrText = data => completeDomain(data.domain) || 'Claim domain'
+
+const loadScreen = (ScreenComponent, extraProps = {}) => props => {
+  // console.log('the props', extraProps)
+  // console.log('the comp', ScreenComponent)
+  return <ScreenComponent screenProps={props} {...extraProps} />
+}
+
+const loadReviewScreen = () => props => {
+  const { domain, dotVoting, tokens, voting } = props.data
+  return (
+    <ReviewScreen
+      screenProps={props}
+      items={[
+        {
+          label: 'General info',
+          fields: [
+            ['Organization template', 'Open Enterprise'],
+            ['Name', completeDomain(domain)],
+          ],
+        },
+        {
+          label: <KnownAppBadge appName="voting.aragonpm.eth" label="Voting" />,
+          fields: VotingScreen.formatReviewFields(voting),
+        },
+        {
+          label: (
+            <KnownAppBadge
+              appName="dot-voting.aragonpm.eth"
+              label="Dot Voting"
+            />
+          ),
+          fields: DotVotingScreen.formatReviewFields(dotVoting),
+        },
+        {
+          label: (
+            <KnownAppBadge
+              appName="token-manager.aragonpm.eth"
+              label="Tokens"
+            />
+          ),
+          fields: Tokens.formatReviewFields(tokens),
+        },
+      ]}
+    />
+  )
+}
+
+const newScreen = [
+  ['Configure template', loadScreen(Tokens, { dataKey: 'secondToken' })],
+]
+
+const conditionalScreen = (OnTrue, OnFalse, extraProps = {}) => props => {
+  const Component = props.data.selectedTokens > 1 ? OnTrue : OnFalse
+  console.log('fuck condition', props, Component)
+  return <Component screenProps={props} {...extraProps} />
+}
+
+const Hirule = ({ screenProps }) => {
+  useEffect(() => {
+    screenProps.next(screenProps.data)
+  }, [screenProps])
+  return null
+}
+
+export const singleTokens = () => [
+  [showDomainOrText, loadScreen(ClaimDomainScreen)],
+  ['Configure template', loadScreen(TokenSelection)],
+  ['Configure template', loadScreen(Tokens)],
+  [
+    'Configure template',
+    conditionalScreen(Tokens, VotingScreen, { dataKey: 'secondToken' }),
+  ],
+  ['Configure template', conditionalScreen(VotingScreen, DotVotingScreen)],
+  [
+    'Configure template',
+    props =>
+      props.data.selectedTokens > 1 ? (
+        <DotVotingScreen screenProps={props} />
+      ) : (
+        loadReviewScreen()(props)
+      ),
+  ],
+  [
+    'Review information',
+    props =>
+      props.data.selectedTokens > 1 ? (
+        loadReviewScreen()(props)
+      ) : (
+        <Hirule screenProps={props} />
+      ),
+  ],
+]
+
+export const multiTokens = () => {
+  const newScreens = Array.from(singleTokens())
+  Array.prototype.splice.apply(newScreens, [3, 0].concat(newScreen))
+  return newScreens
+}
+
 export default {
   id: 'open-enterprise-template.aragonpm.eth',
   name: 'Open Enterprise',
@@ -69,59 +171,7 @@ export default {
     { appName: 'projects.aragonpm.eth', label: 'Projects' },
     { appName: 'rewards.aragonpm.eth', label: 'Rewards' },
   ],
-  screens: [
-    [
-      data => completeDomain(data.domain) || 'Claim domain',
-      props => <ClaimDomainScreen screenProps={props} />,
-    ],
-    ['Configure template', props => <VotingScreen screenProps={props} />],
-    ['Configure template', props => <DotVotingScreen screenProps={props} />],
-    ['Configure template', props => <TokensScreen screenProps={props} />],
-    [
-      'Review information',
-      props => {
-        const { domain, dotVoting, tokens, voting } = props.data
-        return (
-          <ReviewScreen
-            screenProps={props}
-            items={[
-              {
-                label: 'General info',
-                fields: [
-                  ['Organization template', 'Open Enterprise'],
-                  ['Name', completeDomain(domain)],
-                ],
-              },
-              {
-                label: (
-                  <KnownAppBadge appName="voting.aragonpm.eth" label="Voting" />
-                ),
-                fields: VotingScreen.formatReviewFields(voting),
-              },
-              {
-                label: (
-                  <KnownAppBadge
-                    appName="dot-voting.aragonpm.eth"
-                    label="Dot Voting"
-                  />
-                ),
-                fields: DotVotingScreen.formatReviewFields(dotVoting),
-              },
-              {
-                label: (
-                  <KnownAppBadge
-                    appName="token-manager.aragonpm.eth"
-                    label="Tokens"
-                  />
-                ),
-                fields: TokensScreen.formatReviewFields(tokens),
-              },
-            ]}
-          />
-        )
-      },
-    ],
-  ],
+  screens: singleTokens(),
   prepareTransactions(createTx, data) {
     const allocationsPeriod = 0 // default
     const financePeriod = 0 // default

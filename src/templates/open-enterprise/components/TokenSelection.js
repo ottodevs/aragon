@@ -1,10 +1,12 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { GU } from '@aragon/ui'
 import { Header, KnownAppBadge, Navigation, ScreenPropsType } from '../../kit'
 import RadioCardList from './RadioCardList'
 import oneTokenIllustrationSrc from './assets/oneToken.svg'
 import twoTokensIllustrationSrc from './assets/twoTokens.svg'
+
+import { singleTokens, multiTokens } from '../'
 
 const radioCardItems = [
   {
@@ -23,18 +25,35 @@ const radioCardItems = [
   },
 ]
 
-function TokenSelection({ screenProps: { back, data, next }, title }) {
+function TokenSelection({
+  screenProps: { back, data, next, screens, setScreens },
+  title,
+}) {
+  // console.log('setScreens received', typeof setScreens, setScreens)
   const screenData = data.selectedTokens
 
   const [selectedTokens, selectTokens] = useState(
     screenData > 0 ? screenData - 1 : -1
   )
 
+  // useEffect(() => {
+  //   console.log('screens changed!', screens)
+  // }, [screens])
+
   const handleSubmit = useCallback(
     event => {
       event.preventDefault()
 
       const mergedData = { ...data, selectedTokens: selectedTokens + 1 }
+
+      // if (selectedTokens) {
+      //   if (screens.length < 6) setScreens(multiTokens())
+      // } else {
+      //   if (screens.length > 6) setScreens(singleTokens())
+      // }
+
+      // console.log('calling setScreens', setScreens(multiTokens()))
+
       next(mergedData)
     },
     [data, next, selectedTokens]

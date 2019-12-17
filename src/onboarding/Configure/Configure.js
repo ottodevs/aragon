@@ -16,6 +16,7 @@ function Configure({
   onNextTemplateScreen,
   onPrevTemplateScreen,
   onUseTemplate,
+  onSetTemplateScreens,
   status,
   stepIndex,
   steps,
@@ -64,6 +65,7 @@ function Configure({
               TemplateScreen={TemplateScreen}
               onNext={onNextTemplateScreen}
               onPrev={onPrevTemplateScreen}
+              onSetScreens={onSetTemplateScreens}
               screenIndex={templateScreenIndex}
               screens={screens}
               templateData={templateData}
@@ -81,6 +83,7 @@ Configure.propTypes = {
     .isRequired,
   onNextTemplateScreen: PropTypes.func.isRequired,
   onPrevTemplateScreen: PropTypes.func.isRequired,
+  onSetTemplateScreens: PropTypes.func.isRequired,
   onUseTemplate: PropTypes.func.isRequired,
   status: PropTypes.oneOf(Object.values(CreateStatuses)).isRequired,
   stepIndex: PropTypes.number.isRequired,

@@ -65,6 +65,13 @@ function useConfigureState(templates, onScreenUpdate) {
   // The current template
   const [template, setTemplate] = useState(null)
 
+  const setTemplateScreens = useCallback(
+    screens => {
+      setTemplate({ screens })
+      console.log('templates changed!', template, screens)
+    },
+    [template, setTemplate]
+  )
   // The current screen in the template
   const [templateScreenIndex, setTemplateScreenIndex] = useState(-1)
 
@@ -162,6 +169,7 @@ function useConfigureState(templates, onScreenUpdate) {
     prevScreen,
     selectTemplate,
     setTemplateData,
+    setTemplateScreens,
     template,
     templateData,
     templateScreenIndex,
@@ -366,6 +374,7 @@ const Create = React.memo(function Create({
     nextScreen,
     prevScreen,
     selectTemplate,
+    setTemplateScreens,
     template,
     templateData,
     templateScreenIndex,
@@ -438,6 +447,10 @@ const Create = React.memo(function Create({
 
   const handleTemplateNext = useCallback(data => nextScreen(data), [nextScreen])
   const handleTemplatePrev = useCallback(() => prevScreen(), [prevScreen])
+  const handleTemplateScreens = useCallback(
+    screens => setTemplateScreens(screens),
+    [setTemplateScreens]
+  )
 
   const handleOpenNewOrg = useCallback(() => {
     if (templateData && templateData.domain) {
@@ -475,6 +488,7 @@ const Create = React.memo(function Create({
           TemplateScreen={TemplateScreen}
           onNextTemplateScreen={handleTemplateNext}
           onPrevTemplateScreen={handleTemplatePrev}
+          onSetTemplateScreens={handleTemplateScreens}
           onUseTemplate={handleUseTemplate}
           screens={templateScreens}
           status={status}

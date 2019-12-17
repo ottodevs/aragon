@@ -9,6 +9,7 @@ function ConfigureTemplateScreens({
   TemplateScreen,
   onNext,
   onPrev,
+  onSetScreens,
   screenIndex,
   screens,
   templateData,
@@ -74,6 +75,7 @@ function ConfigureTemplateScreens({
                 }
                 next={onNext}
                 back={onPrev}
+                setScreens={onSetScreens}
                 screens={screens}
                 screenIndex={screenIndex}
               />
@@ -90,6 +92,7 @@ ConfigureTemplateScreens.propTypes = {
   TemplateScreen: PropTypes.func.isRequired,
   onNext: PropTypes.func.isRequired,
   onPrev: PropTypes.func.isRequired,
+  onSetScreens: PropTypes.func.isRequired,
   screenIndex: PropTypes.number.isRequired,
   screens: PropTypes.array.isRequired,
   templateData: PropTypes.object.isRequired,
