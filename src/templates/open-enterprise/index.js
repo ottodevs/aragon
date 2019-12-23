@@ -50,14 +50,54 @@ function adjustDotVotingSettings(dvSupport, dvQuorum) {
 
 const showDomainOrText = data => completeDomain(data.domain) || 'Claim domain'
 
-const loadScreen = (ScreenComponent, extraProps = {}) => props => {
-  // console.log('the props', extraProps)
-  // console.log('the comp', ScreenComponent)
-  return <ScreenComponent screenProps={props} {...extraProps} />
-}
+const loadScreen = ScreenComponent => props => (
+  <ScreenComponent screenProps={props} />
+)
 
 const loadReviewScreen = () => props => {
-  const { domain, dotVoting, tokens, voting } = props.data
+  const {
+    domain,
+    dotVoting,
+    tokens,
+    secondTokens,
+    selectedTokens,
+    voting,
+  } = props.data
+  const tokensReviewItems = [
+    {
+      label: (
+        <KnownAppBadge
+          appName="token-manager.aragonpm.eth"
+          label={`${selectedTokens > 1 ? 'First ' : ''}Tokens`}
+        />
+      ),
+      fields: Tokens.formatReviewFields(tokens),
+    },
+    {
+      label: (
+        <KnownAppBadge
+          appName="token-manager.aragonpm.eth"
+          label="Second Tokens"
+        />
+      ),
+      fields: Tokens.formatReviewFields(secondTokens),
+    },
+  ]
+
+  const adjustedTokens =
+    selectedTokens > 1 ? tokensReviewItems : [tokensReviewItems[0]]
+  const formatGovToken = app => {
+    const govToken = [tokens, secondTokens][app.govToken]
+    return selectedTokens > 1
+      ? [
+          [
+            'Governance Token',
+            `${govToken.tokenName} (${govToken.tokenSymbol})`,
+          ],
+        ]
+      : []
+  }
+
   return (
     <ReviewScreen
       screenProps={props}
@@ -69,9 +109,13 @@ const loadReviewScreen = () => props => {
             ['Name', completeDomain(domain)],
           ],
         },
+        ...adjustedTokens,
         {
           label: <KnownAppBadge appName="voting.aragonpm.eth" label="Voting" />,
-          fields: VotingScreen.formatReviewFields(voting),
+          fields: [
+            ...formatGovToken(voting),
+            ...VotingScreen.formatReviewFields(voting),
+          ],
         },
         {
           label: (
@@ -80,73 +124,41 @@ const loadReviewScreen = () => props => {
               label="Dot Voting"
             />
           ),
-          fields: DotVotingScreen.formatReviewFields(dotVoting),
-        },
-        {
-          label: (
-            <KnownAppBadge
-              appName="token-manager.aragonpm.eth"
-              label="Tokens"
-            />
-          ),
-          fields: Tokens.formatReviewFields(tokens),
+          fields: [
+            ...formatGovToken(dotVoting),
+            ...DotVotingScreen.formatReviewFields(dotVoting),
+          ],
         },
       ]}
     />
   )
 }
 
-const newScreen = [
-  ['Configure template', loadScreen(Tokens, { dataKey: 'secondToken' })],
-]
-
-const conditionalScreen = (OnTrue, OnFalse, extraProps = {}) => props => {
-  const Component = props.data.selectedTokens > 1 ? OnTrue : OnFalse
-  console.log('fuck condition', props, Component)
-  return <Component screenProps={props} {...extraProps} />
-}
-
-const Hirule = ({ screenProps }) => {
+/* A bit hacky but simple, just a component
+ * to go back/next screen on mount,
+ * needed to adjust single token case, as the screens number value seems to be
+ * statically accessed just once, at the beginning of the onboarding process
+ */
+const conditionalToken = () => props => {
+  const { back, data, next } = props
   useEffect(() => {
-    screenProps.next(screenProps.data)
-  }, [screenProps])
-  return null
+    if (data.selectedTokens === 1) {
+      data.skip ? back() : next({ ...data, skip: true })
+    }
+  }, []) // eslint-disable-line
+
+  return <Tokens screenProps={props} dataKey="secondTokens" />
 }
 
-export const singleTokens = () => [
+export const conditionalScreens = () => [
   [showDomainOrText, loadScreen(ClaimDomainScreen)],
   ['Configure template', loadScreen(TokenSelection)],
   ['Configure template', loadScreen(Tokens)],
-  [
-    'Configure template',
-    conditionalScreen(Tokens, VotingScreen, { dataKey: 'secondToken' }),
-  ],
-  ['Configure template', conditionalScreen(VotingScreen, DotVotingScreen)],
-  [
-    'Configure template',
-    props =>
-      props.data.selectedTokens > 1 ? (
-        <DotVotingScreen screenProps={props} />
-      ) : (
-        loadReviewScreen()(props)
-      ),
-  ],
-  [
-    'Review information',
-    props =>
-      props.data.selectedTokens > 1 ? (
-        loadReviewScreen()(props)
-      ) : (
-        <Hirule screenProps={props} />
-      ),
-  ],
+  ['Configure template', conditionalToken()],
+  ['Configure template', loadScreen(VotingScreen)],
+  ['Configure template', loadScreen(DotVotingScreen)],
+  ['Review information', props => loadReviewScreen()(props)],
 ]
-
-export const multiTokens = () => {
-  const newScreens = Array.from(singleTokens())
-  Array.prototype.splice.apply(newScreens, [3, 0].concat(newScreen))
-  return newScreens
-}
 
 export default {
   id: 'open-enterprise-template.aragonpm.eth',
@@ -161,6 +173,7 @@ export default {
   userGuideUrl: 'https://autark.gitbook.io/open-enterprise/',
   sourceCodeUrl: 'https://github.com/AutarkLabs/open-enterprise',
   registry: 'aragonpm.eth',
+  optionalApps: [{ appName: 'agent.aragonpm.eth', label: 'Agent' }],
   apps: [
     { appName: 'voting.aragonpm.eth', label: 'Voting' },
     { appName: 'token-manager.aragonpm.eth', label: 'Tokens' },
@@ -171,21 +184,44 @@ export default {
     { appName: 'projects.aragonpm.eth', label: 'Projects' },
     { appName: 'rewards.aragonpm.eth', label: 'Rewards' },
   ],
-  screens: singleTokens(),
+  screens: conditionalScreens(),
   prepareTransactions(createTx, data) {
     const allocationsPeriod = 0 // default
     const financePeriod = 0 // default
 
-    const { domain, dotVoting, tokens, voting } = data
-    const { tokenName, tokenSymbol, members } = tokens
+    const {
+      domain,
+      dotVoting,
+      optionalApps = [],
+      secondTokens,
+      selectedTokens,
+      tokens,
+      voting,
+    } = data
+
+    const useAgentAsVault = optionalApps.includes('agent.aragonpm.eth')
+
+    const tokens2 = selectedTokens > 1 ? secondTokens : {}
+    const { fixedStake, tokenName, tokenSymbol, members, transferable } = tokens
+    const {
+      fixedStake: fixedStake2,
+      tokenName: tokenName2 = '',
+      tokenSymbol: tokenSymbol2 = '',
+      members: members2 = [],
+      transferable: transferable2,
+    } = tokens2
 
     const baseStake = new BN(10).pow(new BN(18))
     const stakes = members.map(([_, stake]) =>
       baseStake.mul(new BN(stake.toString())).toString()
     )
     const accounts = members.map(([account]) => account)
+    const stakes2 = members2.map(([_, stake]) =>
+      baseStake.mul(new BN(stake.toString())).toString()
+    )
+    const accounts2 = members2.map(([account]) => account)
 
-    const { support, quorum, duration } = voting
+    const { support, quorum, duration, govToken } = voting
     const [adjustedSupport, adjustedQuorum] = adjustVotingSettings(
       support,
       quorum
@@ -197,6 +233,7 @@ export default {
       support: dvSupport,
       quorum: dvQuorum,
       duration: dvDuration,
+      govToken: dvGovToken,
     } = dotVoting
     const [adjustedDvSupport, adjustedDvQuorum] = adjustDotVotingSettings(
       dvSupport,
@@ -213,22 +250,32 @@ export default {
     return [
       {
         name: 'Create organization',
-        transaction: createTx('newTokenAndInstance', [
+        transaction: createTx('newTokensAndInstance', [
+          domain,
           tokenName,
           tokenSymbol,
-          domain,
-          accounts,
-          stakes,
-          votingSettings,
-          financePeriod,
+          tokenName2,
+          tokenSymbol2,
+          [...dotVotingSettings, ...votingSettings],
+          [Boolean(dvGovToken), Boolean(govToken)],
+          useAgentAsVault,
         ]),
       },
       {
-        name: 'Install Open Enterprise',
-        transaction: createTx('newOpenEnterprise', [
-          dotVotingSettings,
-          allocationsPeriod,
-          false, // useDiscussions option, will revisit when forwarding API gets ready
+        name: 'Setup Tokens',
+        transaction: createTx('newTokenManagers', [
+          accounts,
+          stakes,
+          accounts2,
+          stakes2,
+          [fixedStake, transferable, fixedStake2, transferable2],
+        ]),
+      },
+      {
+        name: 'Finalize DAO creation',
+        transaction: createTx('finalizeDao', [
+          [financePeriod, allocationsPeriod],
+          false, // use Discussions App
         ]),
       },
     ]

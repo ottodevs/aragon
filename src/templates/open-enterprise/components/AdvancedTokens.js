@@ -9,9 +9,11 @@ import {
   IconPlus,
   IconTrash,
   Info,
-  RADIUS,
-  TextInput,
   isAddress,
+  RADIUS,
+  Switch,
+  TextInput,
+  textStyle,
   useTheme,
 } from '@aragon/ui'
 import {
@@ -39,13 +41,21 @@ function validateDuplicateAddresses(members) {
   return validAddresses.length === new Set(validAddresses).size
 }
 
-function validationError(tokenName, tokenSymbol, members, editMembers) {
+function validationError(
+  tokenName,
+  tokenSymbol,
+  members,
+  editMembers,
+  fixedStake
+) {
   if (editMembers && !members.some(([address]) => isAddress(address))) {
     return 'You need at least one valid address.'
   }
   if (
     editMembers &&
-    !members.some(([address, stake]) => isAddress(address) && stake > 0)
+    !members.some(
+      ([address, stake]) => isAddress(address) && (stake > 0 || fixedStake)
+    )
   ) {
     return 'You need at least one valid address with a positive balance.'
   }
@@ -66,21 +76,23 @@ function Tokens({
   dataKey,
   appLabel,
   editMembers,
-  screenProps: { back, data, next, screenIndex, screens },
+  screenProps: { back, data, next, screenIndex },
   title,
 }) {
-  console.log('tokens received, ', data.selectedTokens)
   const screenData = (dataKey ? data[dataKey] : data) || {}
+  const [initialFixedStake, initialTransferable] = [
+    'fixedStake' in screenData ? screenData.fixedStake : accountStake !== -1,
+    'transferable' in screenData ? screenData.transferable : true,
+  ]
 
   const theme = useTheme()
   const fieldsLayout = useFieldsLayout()
 
   const [formError, setFormError] = useState()
-
-  const fixedStake = accountStake !== -1
-
+  const [fixedStake, setFixedStake] = useState(initialFixedStake)
   const [tokenName, setTokenName] = useState(screenData.tokenName || '')
   const [tokenSymbol, setTokenSymbol] = useState(screenData.tokenSymbol || '')
+  const [transferable, setTransferable] = useState(initialTransferable)
 
   const [members, setMembers] = useState(
     screenData.members && screenData.members.length > 0
@@ -115,9 +127,9 @@ function Tokens({
     //   - A field is being removed.
     //   - The first field is being emptied.
     //
-    const elts = membersRef.current.querySelectorAll('.member')
-    if (elts.length > 0) {
-      elts[elts.length - 1].querySelector('input').focus()
+    const elements = membersRef.current.querySelectorAll('.member')
+    if (elements.length > 0) {
+      elements[elements.length - 1].querySelector('input').focus()
     }
   }, [focusLastMemberNext])
 
@@ -162,14 +174,20 @@ function Tokens({
         tokenName,
         tokenSymbol,
         members,
-        editMembers
+        editMembers,
+        fixedStake
       )
       setFormError(error)
       if (!error) {
+        const fixedStakeMembers = fixedStake
+          ? members.map(([account]) => [account, 1])
+          : members
         const screenData = {
+          fixedStake,
           tokenName,
           tokenSymbol,
-          members: members.filter(
+          transferable,
+          members: fixedStakeMembers.filter(
             ([account, stake]) => isAddress(account) && stake > 0
           ),
         }
@@ -177,10 +195,20 @@ function Tokens({
           ? { ...data, [dataKey]: screenData }
           : { ...data, ...screenData }
 
-        next(mergedData)
+        next({ ...mergedData, skip: false })
       }
     },
-    [data, dataKey, editMembers, members, next, tokenName, tokenSymbol]
+    [
+      data,
+      dataKey,
+      editMembers,
+      fixedStake,
+      members,
+      next,
+      tokenName,
+      tokenSymbol,
+      transferable,
+    ]
   )
 
   // Focus the token name as soon as it becomes available
@@ -195,10 +223,13 @@ function Tokens({
   const disableNext =
     !tokenName ||
     !tokenSymbol ||
-    (editMembers && members.every(([account, stake]) => !account || stake < 0))
+    (editMembers &&
+      members.every(
+        ([account, stake]) => !account || (!fixedStake && stake < 0)
+      ))
 
   const generatedNextLabel = `Next: ${
-    screenIndex || data.selectedTokens < 2 ? 'Voting' : 'Second Tokens'
+    data.selectedTokens > 1 && screenIndex === 2 ? 'Second Tokens' : 'Voting'
   }`
 
   return (
@@ -222,9 +253,9 @@ function Tokens({
             >
               {`Choose your ${
                 data.selectedTokens > 1
-                  ? screenIndex
-                    ? 'second'
-                    : 'first'
+                  ? screenIndex === 2
+                    ? 'first'
+                    : 'second'
                   : ''
               }`}
               <span
@@ -251,7 +282,13 @@ function Tokens({
           <Field
             label={
               <React.Fragment>
-                Token name
+                {`${
+                  data.selectedTokens > 1
+                    ? screenIndex === 2
+                      ? 'first'
+                      : 'second'
+                    : ''
+                } token name`}
                 <Help hint="What’s the token name?">
                   <strong>Token name</strong> is the name you can assign to the
                   token that will be minted when creating this organization.
@@ -295,6 +332,53 @@ function Tokens({
           </Field>
         </div>
       </div>
+
+      <Field label="token settings">
+        <div
+          css={`
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: ${2 * GU}px;
+
+            & + & {
+              margin-top: ${1.5 * GU}px;
+            }
+          `}
+        >
+          <div
+            css={`
+              ${textStyle('body3')};
+            `}
+          >
+            Members can hold a maximum of one for this token (e.g. membership)
+          </div>
+
+          <Switch checked={fixedStake} onChange={setFixedStake} />
+        </div>
+        <div
+          css={`
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: ${2 * GU}px;
+
+            & + & {
+              margin-top: ${1.5 * GU}px;
+            }
+          `}
+        >
+          <div
+            css={`
+              ${textStyle('body3')};
+            `}
+          >
+            Members can transfer this token to other Ethereum addresses
+          </div>
+          <Switch checked={transferable} onChange={setTransferable} />
+        </div>
+      </Field>
+
       {editMembers && (
         <Field
           label={
@@ -396,7 +480,6 @@ function MemberField({
   displayStake,
 }) {
   const theme = useTheme()
-  const fieldsLayout = useFieldsLayout()
 
   const [account, stake] = member
 
@@ -423,12 +506,16 @@ function MemberField({
     <div
       className="member"
       css={`
-        ${fieldsLayout};
+        display: flex;
         position: relative;
         margin-bottom: ${1.5 * GU}px;
       `}
     >
-      <div>
+      <div
+        css={`
+          flex: 1;
+        `}
+      >
         <TextInput
           adornment={
             <span css="transform: translateY(1px)">
@@ -482,11 +569,18 @@ function MemberField({
       </div>
       <div>
         {displayStake && (
-          <TextInput
-            onChange={handleStakeChange}
-            value={stake === -1 ? '' : stake}
-            wide
-          />
+          <div
+            css={`
+              margin-left: ${1.5 * GU}px;
+              width: ${12 * GU}px;
+            `}
+          >
+            <TextInput
+              onChange={handleStakeChange}
+              value={stake === -1 ? '' : stake}
+              wide
+            />
+          </div>
         )}
       </div>
     </div>
@@ -510,6 +604,8 @@ function formatReviewFields(screenData) {
       'Token name & symbol',
       `${screenData.tokenName} (${screenData.tokenSymbol})`,
     ],
+    ['Maximum of one token per account', screenData.fixedStake ? 'Yes' : 'No'],
+    ['Token transferable', screenData.transferable ? 'Yes' : 'No'],
     ...screenData.members.map(([account, amount], i) => [
       `Tokenholder #${i + 1}`,
       <div

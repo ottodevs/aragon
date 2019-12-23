@@ -68,9 +68,8 @@ function useConfigureState(templates, onScreenUpdate) {
   const setTemplateScreens = useCallback(
     screens => {
       setTemplate({ screens })
-      console.log('templates changed!', template, screens)
     },
-    [template, setTemplate]
+    [setTemplate]
   )
   // The current screen in the template
   const [templateScreenIndex, setTemplateScreenIndex] = useState(-1)

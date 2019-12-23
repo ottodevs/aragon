@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { GU, noop, RadioGroup } from '@aragon/ui'
+import { noop, RadioGroup } from '@aragon/ui'
 import RadioCardItem from './RadioCardItem'
 
 function RadioCardList({ items, onChange, selected, ...props }) {
